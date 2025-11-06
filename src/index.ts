@@ -7,7 +7,7 @@ import { Plugin } from "obsidian";
 import type { BasesViewRegistration } from "obsidian";
 import { KanbanBasesView } from "./views/kanbanBasesView";
 import { KanbanSettingTab } from "./settings/settingsTab";
-import { DEFAULT_SETTINGS } from "./settings/defaultSettings";
+import { DEFAULT_PLUGIN_SETTINGS } from "./settings/defaultSettings";
 import type { KanbanPluginSettings } from "./types/settings";
 
 // Kanban View の識別子
@@ -45,7 +45,11 @@ export default class ObsidianBetterKanbanPlugin extends Plugin {
    * 設定を読み込む
    */
   async loadSettings(): Promise<void> {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    this.settings = Object.assign(
+      {},
+      DEFAULT_PLUGIN_SETTINGS,
+      await this.loadData(),
+    );
   }
 
   /**

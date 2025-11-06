@@ -1,28 +1,20 @@
 /**
- * Default Settings
- * Default configuration values for the plugin
+ * デフォルト設定
+ *
+ * プラグイン全体のデフォルト設定値を定義します。
+ * ビュー固有の設定は Base プラグインの config で管理されます。
  */
 
-import type { KanbanPluginSettings } from "../types/settings";
-import { CARD_SIZES } from "../types/settings";
+import { KanbanPluginSettings } from "../types/settings";
 
 /**
- * Plugin default settings
- * Used on fresh installation or when resetting settings
+ * プラグインのデフォルト設定
  */
-export const DEFAULT_SETTINGS: KanbanPluginSettings = {
-  /** Default card size: Medium */
-  cardSize: CARD_SIZES.MEDIUM,
-
-  /** Maximum cards per column: unlimited (0) */
-  maxCardsPerColumn: 0,
-
-  /** Enable drag and drop by default */
-  draggable: true,
-
-  /** Show card count by default */
+export const DEFAULT_PLUGIN_SETTINGS: KanbanPluginSettings = {
+  defaultCardSize: "medium",
+  defaultNewFileLocation: "/",
+  defaultSortOrder: "created",
+  enableDragAndDrop: true,
   showCardCount: true,
-
-  /** Compact mode disabled by default */
   compactMode: false,
 };

@@ -1,15 +1,14 @@
 /**
- * Settings Tab
- * Obsidianの設定タブでプラグイン設定を管理
+ * 設定タブ
+ *
+ * Obsidian の設定画面にプラグイン設定タブを追加します。
  */
 
 import { App, PluginSettingTab, Setting } from "obsidian";
-import type ObsidianBetterKanbanPlugin from "../index";
-import { CARD_SIZES } from "../types/settings";
+import ObsidianBetterKanbanPlugin from "../index";
 
 /**
  * Kanban プラグインの設定タブ
- * Settings > Community plugins > Obsidian better Kanban から設定にアクセス可能
  */
 export class KanbanSettingTab extends PluginSettingTab {
   plugin: ObsidianBetterKanbanPlugin;
@@ -25,63 +24,88 @@ export class KanbanSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     // ヘッダー
-    containerEl.createEl("h2", { text: "Kanban Board Settings" });
+    containerEl.createEl("h2", { text: "Obsidian better Kanban Settings" });
 
     containerEl.createEl("p", {
-      text: "These settings are used as default values for newly created Kanban boards. Each board can be customized individually.",
+      text: "These are default settings. Each board can override these settings individually.",
       cls: "setting-item-description",
     });
 
-    // カードサイズ設定
+    // デフォルトのカードサイズ
     new Setting(containerEl)
       .setName("Default card size")
-      .setDesc("Default card size for new boards")
+      .setDesc("Default size for cards in the board")
       .addDropdown((dropdown) =>
         dropdown
-          .addOption(CARD_SIZES.SMALL, "Small")
-          .addOption(CARD_SIZES.MEDIUM, "Medium")
-          .addOption(CARD_SIZES.LARGE, "Large")
-          .setValue(this.plugin.settings.cardSize)
+          .addOptions({
+            small: "Small",
+            medium: "Medium",
+            large: "Large",
+          })
+          .setValue(this.plugin.settings.defaultCardSize)
           .onChange(async (value) => {
-            this.plugin.settings.cardSize =
-              value as (typeof CARD_SIZES)[keyof typeof CARD_SIZES];
+            this.plugin.settings.defaultCardSize = value as
+              | "small"
+              | "medium"
+              | "large";
             await this.plugin.saveSettings();
           }),
       );
 
-    // Max cards per column setting
+    // デフォルトの新規ファイル作成場所
     new Setting(containerEl)
-      .setName("Max cards per column")
-      .setDesc(
-        "Maximum number of cards to display per column (0 for unlimited)",
-      )
+      .setName("Default new file location")
+      .setDesc("Folder path where new cards will be created")
       .addText((text) =>
         text
-          .setValue(this.plugin.settings.maxCardsPerColumn.toString())
+          .setPlaceholder("/")
+          .setValue(this.plugin.settings.defaultNewFileLocation)
           .onChange(async (value) => {
-            const parsed = parseInt(value, 10);
-            this.plugin.settings.maxCardsPerColumn = isNaN(parsed) ? 0 : parsed;
+            this.plugin.settings.defaultNewFileLocation = value || "/";
             await this.plugin.saveSettings();
           }),
       );
 
-    // ドラッグ&ドロップ設定
+    // デフォルトのソート順
+    new Setting(containerEl)
+      .setName("Default sort order")
+      .setDesc("Default order to sort cards within columns")
+      .addDropdown((dropdown) =>
+        dropdown
+          .addOptions({
+            created: "Created date",
+            updated: "Updated date",
+            title: "Title (A-Z)",
+            custom: "Custom (manual)",
+          })
+          .setValue(this.plugin.settings.defaultSortOrder)
+          .onChange(async (value) => {
+            this.plugin.settings.defaultSortOrder = value as
+              | "created"
+              | "updated"
+              | "title"
+              | "custom";
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    // ドラッグ&ドロップを有効にするか
     new Setting(containerEl)
       .setName("Enable drag and drop")
-      .setDesc("Enable drag and drop for new boards")
+      .setDesc("Allow cards to be moved between columns by dragging")
       .addToggle((toggle) =>
         toggle
-          .setValue(this.plugin.settings.draggable)
+          .setValue(this.plugin.settings.enableDragAndDrop)
           .onChange(async (value) => {
-            this.plugin.settings.draggable = value;
+            this.plugin.settings.enableDragAndDrop = value;
             await this.plugin.saveSettings();
           }),
       );
 
-    // カード数表示設定
+    // カード数を表示するか
     new Setting(containerEl)
       .setName("Show card count")
-      .setDesc("Display the number of cards in each column")
+      .setDesc("Display the number of cards in each column header")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.showCardCount)
@@ -91,10 +115,10 @@ export class KanbanSettingTab extends PluginSettingTab {
           }),
       );
 
-    // コンパクトモード設定
+    // コンパクトモードを有効にするか
     new Setting(containerEl)
       .setName("Compact mode")
-      .setDesc("Reduce spacing and padding for a more compact view")
+      .setDesc("Use compact layout for cards")
       .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.compactMode)
@@ -103,16 +127,5 @@ export class KanbanSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
-
-    // Additional information
-    containerEl.createEl("h3", {
-      text: "About Board-Specific Settings",
-      cls: "setting-item-heading",
-    });
-
-    containerEl.createEl("p", {
-      text: "Each Kanban board can have individual settings applied through the settings panel within the board. Board-specific settings will override the default values configured here.",
-      cls: "setting-item-description",
-    });
   }
 }

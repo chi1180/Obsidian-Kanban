@@ -1,61 +1,61 @@
 /**
- * Settings Type Definitions
- * プラグイン設定とビュー設定の型定義
+ * 設定の型定義
+ *
+ * プラグイン全体の設定の型を定義しています。
+ * ビュー固有の設定は Base プラグインの config で管理されます。
  */
 
-// カードサイズの選択肢
-export const CARD_SIZES = {
-  SMALL: "small",
-  MEDIUM: "medium",
-  LARGE: "large",
-} as const;
+import type { CardSize, SortOrder } from "./kanban";
 
-export type CardSize = (typeof CARD_SIZES)[keyof typeof CARD_SIZES];
-
-// 設定のキー定数
-export const SETTINGS_KEYS = {
-  CARD_SIZE: "card-size",
-  MAX_CARDS_PER_COLUMN: "max-cards-per-column",
-  DRAGGABLE: "draggable",
-  SHOW_CARD_COUNT: "show-card-count",
-  COMPACT_MODE: "compact-mode",
-} as const;
+export type { CardSize, SortOrder };
 
 /**
  * プラグイン全体の設定
- * 新規ボードのデフォルト設定として使用
+ * Obsidian の設定タブで管理されるグローバル設定
  */
 export interface KanbanPluginSettings {
-  /** Default card size */
-  cardSize: CardSize;
-  /** Maximum number of cards per column (0 = unlimited) */
-  maxCardsPerColumn: number;
-  /** Enable drag and drop by default */
-  draggable: boolean;
-  /** Show card count by default */
+  /** デフォルトのカードサイズ */
+  defaultCardSize: CardSize;
+
+  /** デフォルトの新規ファイル作成場所 */
+  defaultNewFileLocation: string;
+
+  /** デフォルトのソート順 */
+  defaultSortOrder: SortOrder;
+
+  /** ドラッグ&ドロップを有効にするか */
+  enableDragAndDrop: boolean;
+
+  /** カード数を表示するか */
   showCardCount: boolean;
-  /** Use compact mode by default */
+
+  /** コンパクトモードを有効にするか */
   compactMode: boolean;
 }
 
 /**
- * ビュー固有の設定
- * プラグイン設定を上書きする場合に使用
+ * 設定のキー定数
  */
-export interface KanbanViewSettings {
-  cardSize?: CardSize;
-  maxCardsPerColumn?: number;
-  draggable?: boolean;
-  showCardCount?: boolean;
-  compactMode?: boolean;
-}
+export const SETTINGS_KEYS = {
+  CARD_SIZE: "cardSize",
+  SORT_ORDER: "sortOrder",
+  ENABLE_DRAG_AND_DROP: "enableDragAndDrop",
+  SHOW_CARD_COUNT: "showCardCount",
+  COMPACT_MODE: "compactMode",
+  COLUMN_PROPERTY: "columnProperty",
+} as const;
 
 /**
- * 有効な設定値とその取得元を返す型
+ * カードサイズの選択肢
  */
-export interface EffectiveSetting<T> {
-  /** The actual value to use */
-  value: T;
-  /** Whether this setting is overridden by view-specific settings */
-  isOverridden: boolean;
-}
+export const CARD_SIZES: CardSize[] = ["small", "medium", "large"];
+
+/**
+ * ソート順の選択肢
+ */
+export const SORT_ORDERS: SortOrder[] = [
+  "created",
+  "updated",
+  "title",
+  "custom",
+];
