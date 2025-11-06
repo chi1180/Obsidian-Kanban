@@ -1,7 +1,167 @@
 .DiceRoller__container {
-    display: flex;
+  display: flex;
 }
 
 .DiceRoller__container input {
-    width: 60px;
+  width: 60px;
+}
+
+/* Kanban Board Styles */
+.kanban-settings-panel {
+  position: relative;
+}
+
+.kanban-settings-toggle {
+  transition: all 0.2s ease;
+}
+
+.kanban-settings-toggle:hover {
+  background-color: var(--interactive-hover) !important;
+}
+
+.kanban-settings-content {
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Overlay Animation */
+.modal-container.mod-dim {
+  animation: fadeIn 0.15s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Modal Content Animation */
+.modal-container .modal {
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Settings Item Styling */
+.setting-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.setting-item:last-child {
+  border-bottom: none;
+}
+
+.setting-item-name {
+  font-weight: 500;
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+
+.setting-item-description {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.setting-item-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.setting-item-control input[type="number"],
+.setting-item-control select {
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+/* Checkbox styling */
+.setting-item-control label {
+  transition: background-color 0.15s ease;
+}
+
+.setting-item-control label:hover {
+  background-color: var(--background-modifier-hover) !important;
+}
+
+.setting-item-control input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--interactive-accent);
+}
+
+.setting-item-control .clickable-icon {
+  font-size: 12px;
+  padding: 2px 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.setting-item-control .clickable-icon:hover {
+  color: var(--text-normal);
+  background-color: var(--background-modifier-hover);
+}
+
+/* Kanban Board */
+.kanban-column {
+  min-width: 250px;
+  background-color: var(--background-secondary);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.kanban-column-header {
+  margin: 0 0 8px 0;
+  padding: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.kanban-card {
+  user-select: none;
+  padding: 12px;
+  margin: 0 0 8px 0;
+  background-color: var(--background-primary);
+  border-radius: 4px;
+  border: 1px solid var(--background-modifier-border);
+  transition: all 0.2s ease;
+}
+
+.kanban-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-card.is-dragging {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transform: rotate(2deg);
 }

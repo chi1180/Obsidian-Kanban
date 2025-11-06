@@ -11,7 +11,8 @@
     "noImplicitAny": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "lib": ["dom", "esnext"]
+    "lib": ["dom", "esnext"],
+    "skipLibCheck": true
   },
   "include": ["**/*.ts", "**/*.tsx"]
 }

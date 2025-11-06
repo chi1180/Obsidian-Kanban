@@ -1,10 +1,10 @@
 {
-  "id": "react-starter",
-  "name": "React Starter",
-  "description": "Obsidian + ReactJS",
+  "id": "obsidian-better-kanban",
+  "name": "Obsidian better Kanban",
+  "description": "Obsidian with better Kanban",
   "version": "0.0.0",
-  "author": "Liam Cain",
-  "authorUrl": "https://github.com/liamcain/",
+  "author": "Chihiro Watanabe",
+  "authorUrl": "https://github.com/chi1180/",
   "isDesktopOnly": true,
-  "minAppVersion": "0.10.8"
+  "minAppVersion": "1.10.0"
 }

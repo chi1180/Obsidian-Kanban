@@ -1,52 +1,98 @@
-import { ItemView, Plugin, WorkspaceLeaf } from "obsidian";
-import React from "react";
-import ReactDOM from "react-dom";
+/**
+ * Obsidian better Kanban Plugin
+ * Bases View として Kanban ボードを提供
+ */
 
-import DiceRoller from "./ui/DicerRoller";
+import { Plugin } from "obsidian";
+import type { BasesViewRegistration } from "obsidian";
+import { KanbanBasesView } from "./views/kanbanBasesView";
+import { KanbanSettingTab } from "./settings/settingsTab";
+import { DEFAULT_SETTINGS } from "./settings/defaultSettings";
+import type { KanbanPluginSettings } from "./types/settings";
 
-const VIEW_TYPE = "react-view";
+// Kanban View の識別子
+const KANBAN_VIEW_TYPE = "kanban-board-view";
 
-class MyReactView extends ItemView {
-  private reactComponent: React.ReactElement;
-
-  getViewType(): string {
-    return VIEW_TYPE;
-  }
-
-  getDisplayText(): string {
-    return "Dice Roller";
-  }
-
-  getIcon(): string {
-    return "calendar-with-checkmark";
-  }
-
-  async onOpen(): Promise<void> {
-    this.reactComponent = React.createElement(DiceRoller);
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ReactDOM.render(this.reactComponent, (this as any).contentEl);
-  }
-}
-
-export default class ReactStarterPlugin extends Plugin {
-  private view: MyReactView;
+/**
+ * Obsidian better Kanban Plugin
+ * Bases View として Kanban ボードビューを登録
+ */
+export default class ObsidianBetterKanbanPlugin extends Plugin {
+  settings: KanbanPluginSettings;
 
   async onload(): Promise<void> {
-    this.registerView(
-      VIEW_TYPE,
-      (leaf: WorkspaceLeaf) => (this.view = new MyReactView(leaf))
-    );
+    console.log("Loading Obsidian better Kanban Plugin");
+    console.log("Plugin instance:", this);
+    console.log("App instance:", this.app);
 
-    this.app.workspace.onLayoutReady(this.onLayoutReady.bind(this));
+    // 設定を読み込む
+    await this.loadSettings();
+
+    // 設定タブを追加
+    this.addSettingTab(new KanbanSettingTab(this.app, this));
+
+    // Bases View として Kanban ボードを登録
+    this.registerKanbanBasesView();
+
+    console.log("Obsidian better Kanban Plugin loaded");
   }
 
-  onLayoutReady(): void {
-    if (this.app.workspace.getLeavesOfType(VIEW_TYPE).length) {
+  async onunload(): Promise<void> {
+    console.log("Unloading Obsidian better Kanban Plugin");
+  }
+
+  /**
+   * 設定を読み込む
+   */
+  async loadSettings(): Promise<void> {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  /**
+   * 設定を保存する
+   */
+  async saveSettings(): Promise<void> {
+    await this.saveData(this.settings);
+  }
+
+  /**
+   * Kanban Bases View を登録
+   */
+  private registerKanbanBasesView(): void {
+    console.log("Attempting to register Kanban Bases View");
+    console.log("registerBasesView available:", typeof this.registerBasesView);
+
+    // registerBasesView が存在するかチェック
+    if (typeof this.registerBasesView !== "function") {
+      console.error(
+        "registerBasesView is not available. Make sure Bases plugin is installed and enabled.",
+      );
       return;
     }
-    this.app.workspace.getRightLeaf(false).setViewState({
-      type: VIEW_TYPE,
-    });
+
+    const registration: BasesViewRegistration = {
+      name: "Kanban Board",
+      icon: "kanban",
+
+      // View のファクトリ関数
+      factory: (controller, containerEl) => {
+        return new KanbanBasesView(controller, containerEl, this);
+      },
+    };
+
+    try {
+      console.log("Calling registerBasesView with:", {
+        viewType: KANBAN_VIEW_TYPE,
+        registration,
+      });
+      const result = this.registerBasesView(KANBAN_VIEW_TYPE, registration);
+      console.log("Kanban Bases View registered successfully, result:", result);
+    } catch (error) {
+      console.error("Failed to register Kanban Bases View:", error);
+      console.error(
+        "Error stack:",
+        error instanceof Error ? error.stack : "N/A",
+      );
+    }
   }
 }
