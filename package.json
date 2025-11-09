@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-better-kanban",
-  "version": "0.0.0",
-  "description": "Obsidian + Kanban = ❤️",
+  "name": "obsidian-kanban-view",
+  "version": "1.0.1",
+  "description": "Kanban view for Obsidian bases.",
   "author": "chihiro watanabe",
   "main": "main.js",
   "license": "MIT",

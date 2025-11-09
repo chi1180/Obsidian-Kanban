@@ -1,7 +1,7 @@
 {
-  "id": "obsidian-better-kanban",
-  "name": "Obsidian better Kanban",
-  "description": "Obsidian with better Kanban",
+  "id": "kanban-view",
+  "name": "Kanban view",
+  "description": "Kanban view for bases.",
   "version": "1.0.1",
   "author": "Chihiro Watanabe",
   "authorUrl": "https://github.com/chi1180/",
