@@ -264,3 +264,10 @@ If you encounter any issues or have feature requests, please file them in the [G
 ---
 
 Made with ❤️ for the Obsidian community
+
+## Release
+
+```bash
+git tag -a [version] -m "[version]"
+git push origin [version]
+```
