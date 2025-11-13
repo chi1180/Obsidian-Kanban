@@ -169,8 +169,7 @@ export const Card: React.FC<CardProps> = ({
   });
 
   return (
-    <button
-      type="button"
+    <div
       className={cardClassName}
       onClick={handleCardClick}
       onKeyDown={(e) => {
@@ -179,6 +178,8 @@ export const Card: React.FC<CardProps> = ({
           handleCardClick();
         }
       }}
+      role="button"
+      tabIndex={0}
     >
       {/* タイトル */}
       <div className="kanban-card__title">
@@ -191,16 +192,16 @@ export const Card: React.FC<CardProps> = ({
             onBlur={handleTitleBlur}
             onKeyDown={handleTitleKeyDown}
             onClick={(e) => e.stopPropagation()}
+            autoFocus
           />
         ) : (
-          <button
-            type="button"
+          <div
             className="kanban-card__title-text"
             onClick={handleTitleClick}
             title={card.title}
           >
             {card.title}
-          </button>
+          </div>
         )}
       </div>
 
@@ -240,10 +241,10 @@ export const Card: React.FC<CardProps> = ({
                     onKeyDown={handlePropertyKeyDown}
                     onClick={(e) => e.stopPropagation()}
                     title={propName}
+                    autoFocus
                   />
                 ) : (
-                  <button
-                    type="button"
+                  <div
                     className="kanban-card__property-value"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -252,13 +253,13 @@ export const Card: React.FC<CardProps> = ({
                     title={propName}
                   >
                     {formatPropertyValue(value)}
-                  </button>
+                  </div>
                 )}
               </div>
             );
           })}
         </div>
       )}
-    </button>
+    </div>
   );
 };
