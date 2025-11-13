@@ -20,11 +20,7 @@ const KANBAN_VIEW_TYPE = "kanban-board-view";
 export default class ObsidianBetterKanbanPlugin extends Plugin {
   settings: KanbanPluginSettings;
 
-  async onload(): Promise<void> {
-    console.log("Loading Obsidian better Kanban Plugin");
-    console.log("Plugin instance:", this);
-    console.log("App instance:", this.app);
-
+  async onload() {
     // 設定を読み込む
     await this.loadSettings();
 
@@ -33,12 +29,10 @@ export default class ObsidianBetterKanbanPlugin extends Plugin {
 
     // Bases View として Kanban ボードを登録
     this.registerKanbanBasesView();
-
-    console.log("Obsidian better Kanban Plugin loaded");
   }
 
-  async onunload(): Promise<void> {
-    console.log("Unloading Obsidian better Kanban Plugin");
+  onunload() {
+    // Cleanup if needed
   }
 
   /**
@@ -63,14 +57,8 @@ export default class ObsidianBetterKanbanPlugin extends Plugin {
    * Kanban Bases View を登録
    */
   private registerKanbanBasesView(): void {
-    console.log("Attempting to register Kanban Bases View");
-    console.log("registerBasesView available:", typeof this.registerBasesView);
-
     // registerBasesView が存在するかチェック
     if (typeof this.registerBasesView !== "function") {
-      console.error(
-        "registerBasesView is not available. Make sure Bases plugin is installed and enabled.",
-      );
       return;
     }
 
@@ -84,19 +72,6 @@ export default class ObsidianBetterKanbanPlugin extends Plugin {
       },
     };
 
-    try {
-      console.log("Calling registerBasesView with:", {
-        viewType: KANBAN_VIEW_TYPE,
-        registration,
-      });
-      const result = this.registerBasesView(KANBAN_VIEW_TYPE, registration);
-      console.log("Kanban Bases View registered successfully, result:", result);
-    } catch (error) {
-      console.error("Failed to register Kanban Bases View:", error);
-      console.error(
-        "Error stack:",
-        error instanceof Error ? error.stack : "N/A",
-      );
-    }
+    this.registerBasesView(KANBAN_VIEW_TYPE, registration);
   }
 }

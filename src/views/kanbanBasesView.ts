@@ -4,19 +4,17 @@
  * Bases Plugin の View として動作する Kanban ボード
  */
 
- 
- 
-
-import { BasesView, TFile, HoverParent, HoverPopover } from "obsidian";
-import { Root, createRoot } from "react-dom/client";
+import { BasesView, HoverParent, HoverPopover, TFile } from "obsidian";
+import type { Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import React from "react";
 
 import { basesToKanbanData } from "../adapters/basesToKanban";
 import { CardManager } from "../core/cardManager";
 import { KanbanBoard } from "../ui/KanbanBoard";
 import { SettingsPanel } from "../ui/SettingsPanel";
-import ObsidianBetterKanbanPlugin from "../index";
-import { CardSize } from "../types/settings";
+import type ObsidianBetterKanbanPlugin from "../index";
+import type { CardSize } from "../types/settings";
 
 /**
  * Kanban Bases View クラス
@@ -45,8 +43,6 @@ export class KanbanBasesView extends BasesView implements HoverParent {
 
     // React ルートを作成
     this.root = createRoot(this.containerEl);
-
-    console.log("KanbanBasesView: constructor");
   }
 
   /**
@@ -54,7 +50,6 @@ export class KanbanBasesView extends BasesView implements HoverParent {
    * Bases プラグインから呼び出される主要なライフサイクルメソッド
    */
   onDataUpdated(): void {
-    console.log("KanbanBasesView: onDataUpdated");
     this.render();
   }
 
@@ -63,14 +58,13 @@ export class KanbanBasesView extends BasesView implements HoverParent {
    */
   private render(): void {
     if (!this.root) {
-      console.warn("KanbanBasesView: Cannot render, root is null");
       return;
     }
 
     try {
       // Bases からデータを取得
       // this.data.groupedData から全エントリーを取得
-      const allEntries: any[] = [];
+      const allEntries: unknown[] = [];
       if (this.data?.groupedData) {
         for (const group of this.data.groupedData) {
           allEntries.push(...group.entries);
@@ -78,9 +72,11 @@ export class KanbanBasesView extends BasesView implements HoverParent {
       }
 
       // Base の config から設定を取得
-      const columnProperty = String(
-        this.config.get("columnProperty") || "status",
-      );
+      const columnPropertyValue = this.config.get("columnProperty") || "status";
+      const columnProperty =
+        typeof columnPropertyValue === "string"
+          ? columnPropertyValue
+          : "status";
       const cardSize =
         (this.config.get("cardSize") as CardSize) ||
         this.plugin.settings.defaultCardSize;
@@ -111,8 +107,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
           onSettingsClick: this.handleSettingsClick.bind(this),
         }),
       );
-    } catch (error) {
-      console.error("KanbanBasesView: Failed to render", error);
+    } catch {
+      // エラーハンドリング（必要に応じて）
     }
   }
 
@@ -123,30 +119,20 @@ export class KanbanBasesView extends BasesView implements HoverParent {
     cardId: string,
     newColumnId: string,
   ): Promise<void> {
-    console.log("KanbanBasesView: handleCardMove called", {
-      cardId,
-      newColumnId,
-    });
-
     try {
       // cardId はファイルパス
       const file = this.plugin.app.vault.getAbstractFileByPath(cardId);
 
       if (!(file instanceof TFile)) {
-        console.error("KanbanBasesView: File not found", cardId);
         return;
       }
 
       // カラムプロパティを取得
-      const columnProperty = String(
-        this.config.get("columnProperty") || "status",
-      );
-
-      console.log("KanbanBasesView: Moving card", {
-        fileName: file.basename,
-        columnProperty,
-        newColumnId,
-      });
+      const columnPropertyValue = this.config.get("columnProperty") || "status";
+      const columnProperty =
+        typeof columnPropertyValue === "string"
+          ? columnPropertyValue
+          : "status";
 
       // カラムプロパティを更新
       await this.cardManager.moveCardToColumn(
@@ -154,12 +140,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
         columnProperty,
         newColumnId,
       );
-
-      console.log(
-        `KanbanBasesView: Successfully moved card "${file.basename}" to column "${newColumnId}"`,
-      );
-    } catch (error) {
-      console.error("KanbanBasesView: Failed to move card", error);
+    } catch {
+      // エラーハンドリング（必要に応じて）
     }
   }
 
@@ -170,8 +152,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
     try {
       // ファイルを開く
       await this.plugin.app.workspace.getLeaf(false).openFile(file);
-    } catch (error) {
-      console.error("KanbanBasesView: Failed to open file", error);
+    } catch {
+      // エラーハンドリング（必要に応じて）
     }
   }
 
@@ -184,9 +166,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
   ): Promise<void> {
     try {
       await this.cardManager.updateCardTitle(file, newTitle);
-      console.log(`KanbanBasesView: Updated card title to "${newTitle}"`);
-    } catch (error) {
-      console.error("KanbanBasesView: Failed to update card title", error);
+    } catch {
+      // エラーハンドリング（必要に応じて）
     }
   }
 
@@ -199,9 +180,11 @@ export class KanbanBasesView extends BasesView implements HoverParent {
   ): Promise<void> {
     try {
       const folderPath = this.plugin.settings.defaultNewFileLocation;
-      const columnProperty = String(
-        this.config.get("columnProperty") || "status",
-      );
+      const columnPropertyValue = this.config.get("columnProperty") || "status";
+      const columnProperty =
+        typeof columnPropertyValue === "string"
+          ? columnPropertyValue
+          : "status";
 
       await this.cardManager.createCard(
         {
@@ -212,12 +195,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
         },
         folderPath,
       );
-
-      console.log(
-        `KanbanBasesView: Created new card "${title}" in column "${columnId}"`,
-      );
-    } catch (error) {
-      console.error("KanbanBasesView: Failed to create card", error);
+    } catch {
+      // エラーハンドリング（必要に応じて）
     }
   }
 
@@ -227,7 +206,7 @@ export class KanbanBasesView extends BasesView implements HoverParent {
   private async handlePropertyEdit(
     file: TFile,
     property: string,
-    newValue: any,
+    newValue: unknown,
   ): Promise<void> {
     try {
       // プロパティを更新
@@ -237,12 +216,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
           frontmatter[property] = newValue;
         },
       );
-
-      console.log(
-        `KanbanBasesView: Updated property "${property}" to "${newValue}"`,
-      );
-    } catch (error) {
-      console.error("KanbanBasesView: Failed to update property", error);
+    } catch {
+      // エラーハンドリング（必要に応じて）
     }
   }
 

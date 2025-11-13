@@ -4,7 +4,7 @@
  * カラムに新しいカードを追加するボタンを表示します。
  */
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Plus, X } from "lucide-react";
 
 interface NewCardButtonProps {
@@ -26,12 +26,20 @@ interface NewCardButtonProps {
  */
 export const NewCardButton: React.FC<NewCardButtonProps> = ({
   columnId,
-  _columnTitle,
+  columnTitle: _columnTitle,
   onCreateCard,
   compact = false,
 }) => {
   const [isCreating, setIsCreating] = useState(false);
   const [cardTitle, setCardTitle] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 作成モードになったら入力欄にフォーカス
+  useEffect(() => {
+    if (isCreating && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isCreating]);
 
   // 作成モードを開始
   const handleStartCreate = () => {
@@ -69,16 +77,17 @@ export const NewCardButton: React.FC<NewCardButtonProps> = ({
     return (
       <div className="kanban-new-card-form">
         <input
+          ref={inputRef}
           type="text"
           className="kanban-new-card-input"
           placeholder="Card title..."
           value={cardTitle}
           onChange={(e) => setCardTitle(e.target.value)}
           onKeyDown={handleKeyDown}
-          autoFocus
         />
         <div className="kanban-new-card-actions">
           <button
+            type="button"
             className="kanban-new-card-button kanban-new-card-button--create"
             onClick={handleCreate}
             disabled={!cardTitle.trim()}
@@ -86,6 +95,7 @@ export const NewCardButton: React.FC<NewCardButtonProps> = ({
             Add Card
           </button>
           <button
+            type="button"
             className="kanban-new-card-button kanban-new-card-button--cancel"
             onClick={handleCancel}
             aria-label="Cancel"
@@ -99,6 +109,7 @@ export const NewCardButton: React.FC<NewCardButtonProps> = ({
 
   return (
     <button
+      type="button"
       className={`kanban-new-card-trigger ${
         compact ? "kanban-new-card-trigger--compact" : ""
       }`}

@@ -4,8 +4,8 @@
  * ファイルのフロントマター（プロパティ）の読み書きを提供します。
  */
 
-import { App, TFile } from "obsidian";
-import { UpdateCardParams } from "../types/kanban";
+import type { App, TFile } from "obsidian";
+import type { UpdateCardParams } from "../types/kanban";
 
 /**
  * プロパティ管理クラス
@@ -19,7 +19,7 @@ export class PropertyManager {
    * @param file - 対象のファイル
    * @returns プロパティのオブジェクト
    */
-  async getProperties(file: TFile): Promise<Record<string, unknown>> {
+  getProperties(file: TFile): Record<string, unknown> {
     try {
       // Obsidian の MetadataCache を使用してプロパティを取得
       const metadata = this.app.metadataCache.getFileCache(file);
@@ -28,12 +28,9 @@ export class PropertyManager {
         return {};
       }
 
-      // frontmatter から position を除外したものを返す
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { position, ...properties } = metadata.frontmatter;
-      return properties;
-    } catch (error) {
-      console.error("Failed to get properties:", error);
+      // frontmatter をそのまま返す
+      return metadata.frontmatter;
+    } catch {
       return {};
     }
   }
@@ -48,7 +45,7 @@ export class PropertyManager {
 
     try {
       // 既存のプロパティを取得
-      const existingProperties = await this.getProperties(file);
+      const existingProperties = this.getProperties(file);
 
       // 新しいプロパティをマージ
       const updatedProperties = {
@@ -65,8 +62,9 @@ export class PropertyManager {
       // ファイルを更新
       await this.app.vault.modify(file, newContent);
     } catch (error) {
-      console.error("Failed to update properties:", error);
-      throw new Error(`Failed to update properties: ${error.message}`);
+      throw new Error(
+        `Failed to update properties: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -78,7 +76,7 @@ export class PropertyManager {
    * @returns プロパティ値（存在しない場合は undefined）
    */
   async getProperty(file: TFile, propertyName: string): Promise<unknown> {
-    const properties = await this.getProperties(file);
+    const properties = this.getProperties(file);
     return properties[propertyName];
   }
 
@@ -100,8 +98,9 @@ export class PropertyManager {
         frontmatter[propertyName] = value;
       });
     } catch (error) {
-      console.error("Failed to set property:", error);
-      throw new Error(`Failed to set property: ${error.message}`);
+      throw new Error(
+        `Failed to set property: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -226,7 +225,7 @@ export class PropertyManager {
       str === "false" ||
       str === "null" ||
       str === "~" ||
-      !isNaN(Number(str))
+      !Number.isNaN(Number(str))
     ) {
       return `"${str}"`;
     }

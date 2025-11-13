@@ -4,10 +4,17 @@
  * Bases Plugin から取得したデータを Kanban ボードで使用できる形式に変換します。
  */
 
- 
- 
+import type { TFile } from "obsidian";
+import type {
+  KanbanBoardData,
+  KanbanCard,
+  KanbanColumn,
+} from "../types/kanban";
 
-import { KanbanCard, KanbanColumn, KanbanBoardData } from "../types/kanban";
+interface BasesEntry {
+  file: TFile;
+  frontmatter?: Record<string, unknown>;
+}
 
 /**
  * Bases エントリーを Kanban ボードデータに変換
@@ -17,7 +24,7 @@ import { KanbanCard, KanbanColumn, KanbanBoardData } from "../types/kanban";
  * @returns Kanban ボードデータ
  */
 export function basesToKanbanData(
-  entries: any[],
+  entries: unknown[],
   columnProperty: string,
 ): KanbanBoardData {
   // エントリーをカードに変換
@@ -73,59 +80,15 @@ export function basesToKanbanData(
  * @param columnProperty - カラムプロパティ名
  * @returns Kanban カード
  */
-export function entryToCard(entry: any, columnProperty: string): KanbanCard {
-  // デバッグ: entry の構造を確認（オブジェクト版）
-  console.log("entryToCard: entry structure [OBJECT]", {
-    entry,
-    columnProperty,
-    hasFrontmatter: !!entry?.frontmatter,
-    frontmatter: entry?.frontmatter,
-    file: entry?.file,
-  });
-
-  // デバッグ: entry の構造を確認（文字列版）
-  console.log(
-    "entryToCard: entry structure [STRING]",
-    JSON.stringify(
-      {
-        columnProperty,
-        hasFrontmatter: !!entry?.frontmatter,
-        frontmatter: entry?.frontmatter,
-        fileBasename: entry?.file?.basename,
-        filePath: entry?.file?.path,
-      },
-      null,
-      2,
-    ),
-  );
+export function entryToCard(
+  entry: unknown,
+  columnProperty: string,
+): KanbanCard {
+  const basesEntry = entry as BasesEntry;
 
   // frontmatter が存在しない場合は空オブジェクトを使用
-  const properties = entry?.frontmatter || {};
+  const properties = basesEntry?.frontmatter || {};
   const columnValue = properties[columnProperty];
-
-  // デバッグ: columnValue の確認（オブジェクト版）
-  console.log("entryToCard: columnValue check [OBJECT]", {
-    columnProperty,
-    columnValue,
-    propertiesKeys: Object.keys(properties),
-  });
-
-  // デバッグ: columnValue の確認（文字列版）
-  console.log(
-    "entryToCard: columnValue check [STRING]",
-    JSON.stringify(
-      {
-        columnProperty,
-        columnValue,
-        columnValueType: typeof columnValue,
-        isArray: Array.isArray(columnValue),
-        propertiesKeys: Object.keys(properties),
-        allProperties: properties,
-      },
-      null,
-      2,
-    ),
-  );
 
   // カラム値が存在しない場合は「未分類」とする
   const columnId =
@@ -133,28 +96,10 @@ export function entryToCard(entry: any, columnProperty: string): KanbanCard {
       ? String(columnValue)
       : "未分類";
 
-  // デバッグ: 最終的な columnId（オブジェクト版 & 文字列版）
-  console.log("entryToCard: final columnId [OBJECT]", {
-    columnId,
-    cardTitle: entry?.file?.basename,
-  });
-  console.log(
-    "entryToCard: final columnId [STRING]",
-    JSON.stringify(
-      {
-        columnId,
-        cardTitle: entry?.file?.basename,
-        columnProperty,
-      },
-      null,
-      2,
-    ),
-  );
-
   return {
-    id: entry?.file?.path || "unknown",
-    title: entry?.file?.basename || "Untitled",
-    file: entry?.file,
+    id: basesEntry?.file?.path || "unknown",
+    title: basesEntry?.file?.basename || "Untitled",
+    file: basesEntry?.file,
     properties: properties,
     columnId,
     order: 0,
@@ -170,13 +115,14 @@ export function entryToCard(entry: any, columnProperty: string): KanbanCard {
  * @returns プロパティ値の配列（重複なし）
  */
 export function getColumnValues(
-  entries: any[],
+  entries: unknown[],
   columnProperty: string,
 ): string[] {
   const valuesSet = new Set<string>();
 
   entries.forEach((entry) => {
-    const value = entry.frontmatter?.[columnProperty];
+    const basesEntry = entry as BasesEntry;
+    const value = basesEntry.frontmatter?.[columnProperty];
     if (value !== undefined && value !== null) {
       valuesSet.add(String(value));
     }

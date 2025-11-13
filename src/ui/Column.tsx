@@ -99,7 +99,7 @@ export const Column: React.FC<ColumnProps> = ({
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`kanban-column__cards ${
-              snapshot.isDraggingOver
+              _snapshot.isDraggingOver
                 ? "kanban-column__cards--dragging-over"
                 : ""
             }`}

@@ -4,8 +4,9 @@
  * Obsidian の設定画面にプラグイン設定タブを追加します。
  */
 
-import { App, PluginSettingTab, Setting } from "obsidian";
-import ObsidianBetterKanbanPlugin from "../index";
+import { PluginSettingTab, Setting } from "obsidian";
+import type { App } from "obsidian";
+import type ObsidianBetterKanbanPlugin from "../index";
 
 /**
  * Kanban プラグインの設定タブ
@@ -24,13 +25,11 @@ export class KanbanSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     // ヘッダー
-    // eslint-disable-next-line obsidianmd/ui/sentence-case
-    new Setting(containerEl).setName("Obsidian better Kanban").setHeading();
+    new Setting(containerEl).setName("Obsidian better kanban").setHeading();
 
-    containerEl.createEl("p", {
-      text: "These are default settings. Each board can override these settings individually.",
-      cls: "setting-item-description",
-    });
+    new Setting(containerEl).setDesc(
+      "These are default settings. Each board can override these settings individually.",
+    );
 
     // デフォルトのカードサイズ
     new Setting(containerEl)

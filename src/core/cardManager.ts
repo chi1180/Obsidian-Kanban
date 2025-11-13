@@ -5,13 +5,10 @@
  * FileOperations と PropertyManager を組み合わせて使用します。
  */
 
- 
- 
-
-import { App, TFile } from "obsidian";
+import type { App, TFile } from "obsidian";
 import { FileOperations } from "./fileOperations";
 import { PropertyManager } from "./propertyManager";
-import {
+import type {
   CreateCardParams,
   UpdateCardParams,
   KanbanCard,
@@ -24,7 +21,7 @@ export class CardManager {
   private fileOps: FileOperations;
   private propertyManager: PropertyManager;
 
-  constructor(private app: App) {
+  constructor(app: App) {
     this.fileOps = new FileOperations(app);
     this.propertyManager = new PropertyManager(app);
   }
@@ -44,7 +41,6 @@ export class CardManager {
       const file = await this.fileOps.createFile(params, folderPath);
       return file;
     } catch (error) {
-      console.error("Failed to create card:", error);
       throw error;
     }
   }
@@ -58,7 +54,6 @@ export class CardManager {
     try {
       await this.propertyManager.updateProperties(params);
     } catch (error) {
-      console.error("Failed to update card:", error);
       throw error;
     }
   }
@@ -73,7 +68,6 @@ export class CardManager {
     try {
       await this.fileOps.renameFile(file, newTitle);
     } catch (error) {
-      console.error("Failed to update card title:", error);
       throw error;
     }
   }
@@ -87,7 +81,6 @@ export class CardManager {
     try {
       await this.fileOps.deleteFile(file);
     } catch (error) {
-      console.error("Failed to delete card:", error);
       throw error;
     }
   }
@@ -111,7 +104,6 @@ export class CardManager {
         newColumnValue,
       );
     } catch (error) {
-      console.error("Failed to move card to column:", error);
       throw error;
     }
   }
@@ -123,14 +115,18 @@ export class CardManager {
    * @param columnProperty - カラムプロパティ名
    * @returns Kanban カード
    */
-  entryToCard(entry: any, columnProperty: string): KanbanCard {
-    const columnValue = entry.properties[columnProperty] || "未分類";
+  entryToCard(entry: unknown, columnProperty: string): KanbanCard {
+    const entryData = entry as {
+      file: TFile;
+      properties: Record<string, unknown>;
+    };
+    const columnValue = entryData.properties[columnProperty] || "未分類";
 
     return {
-      id: entry.file.path,
-      title: entry.file.basename,
-      file: entry.file,
-      properties: entry.properties,
+      id: entryData.file.path,
+      title: entryData.file.basename,
+      file: entryData.file,
+      properties: entryData.properties,
       columnId: String(columnValue),
       order: 0, // 将来的にカスタム順序をサポート
     };
@@ -143,7 +139,7 @@ export class CardManager {
    * @param columnProperty - カラムプロパティ名
    * @returns Kanban カードの配列
    */
-  entriesToCards(entries: any[], columnProperty: string): KanbanCard[] {
+  entriesToCards(entries: unknown[], columnProperty: string): KanbanCard[] {
     return entries.map((entry) => this.entryToCard(entry, columnProperty));
   }
 
@@ -157,8 +153,7 @@ export class CardManager {
   async getCardProperty(file: TFile, propertyName: string): Promise<unknown> {
     try {
       return await this.propertyManager.getProperty(file, propertyName);
-    } catch (error) {
-      console.error("Failed to get card property:", error);
+    } catch {
       return undefined;
     }
   }
@@ -172,8 +167,7 @@ export class CardManager {
   async getCardProperties(file: TFile): Promise<Record<string, unknown>> {
     try {
       return await this.propertyManager.getProperties(file);
-    } catch (error) {
-      console.error("Failed to get card properties:", error);
+    } catch {
       return {};
     }
   }

@@ -4,8 +4,9 @@
  * Vault 内のファイルの作成、リネーム、削除などの操作を提供します。
  */
 
-import { App, TFile, TFolder, normalizePath } from "obsidian";
-import { CreateCardParams } from "../types/kanban";
+import { TFolder, normalizePath } from "obsidian";
+import type { App, TFile } from "obsidian";
+import type { CreateCardParams } from "../types/kanban";
 
 /**
  * ファイル操作クラス
@@ -48,8 +49,9 @@ export class FileOperations {
       const file = await this.app.vault.create(filePath, content);
       return file;
     } catch (error) {
-      console.error("Failed to create file:", error);
-      throw new Error(`Failed to create file: ${error.message}`);
+      throw new Error(
+        `Failed to create file: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -68,8 +70,9 @@ export class FileOperations {
     try {
       await this.app.fileManager.renameFile(file, newPath);
     } catch (error) {
-      console.error("Failed to rename file:", error);
-      throw new Error(`Failed to rename file: ${error.message}`);
+      throw new Error(
+        `Failed to rename file: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 
@@ -82,8 +85,9 @@ export class FileOperations {
     try {
       await this.app.fileManager.trashFile(file);
     } catch (error) {
-      console.error("Failed to delete file:", error);
-      throw new Error(`Failed to delete file: ${error.message}`);
+      throw new Error(
+        `Failed to delete file: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
     }
   }
 

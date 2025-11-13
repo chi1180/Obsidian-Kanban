@@ -5,9 +5,9 @@
  */
 
 import React, { useState } from "react";
-import { TFile } from "obsidian";
-import { KanbanCard } from "../types/kanban";
-import { CardSize } from "../types/settings";
+import type { TFile } from "obsidian";
+import type { KanbanCard } from "../types/kanban";
+import type { CardSize } from "../types/settings";
 
 interface EditingState {
   property: string | null;
@@ -37,7 +37,7 @@ interface CardProps {
   draggable?: boolean;
 
   /** プロパティ編集時のコールバック */
-  onPropertyEdit?: (file: TFile, property: string, newValue: any) => void;
+  onPropertyEdit?: (file: TFile, property: string, newValue: unknown) => void;
 }
 
 /**
@@ -98,7 +98,7 @@ export const Card: React.FC<CardProps> = ({
   };
 
   // プロパティ編集を開始
-  const handlePropertyClick = (propName: string, currentValue: any) => {
+  const handlePropertyClick = (propName: string, currentValue: unknown) => {
     if (onPropertyEdit) {
       setEditingProperty({
         property: propName,
@@ -117,7 +117,7 @@ export const Card: React.FC<CardProps> = ({
       // 値が変更されている場合のみ保存
       if (newValue !== formatPropertyValue(originalValue) && onPropertyEdit) {
         // 配列の場合はカンマ区切りで分割
-        let parsedValue: any = newValue;
+        let parsedValue: unknown = newValue;
         if (Array.isArray(originalValue)) {
           parsedValue = newValue.split(",").map((v) => v.trim());
         }
@@ -138,7 +138,7 @@ export const Card: React.FC<CardProps> = ({
   };
 
   // プロパティ値を表示用に整形
-  const formatPropertyValue = (value: any): string => {
+  const formatPropertyValue = (value: unknown): string => {
     if (value === undefined || value === null) {
       return "";
     }
@@ -169,7 +169,17 @@ export const Card: React.FC<CardProps> = ({
   });
 
   return (
-    <div className={cardClassName} onClick={handleCardClick}>
+    <button
+      type="button"
+      className={cardClassName}
+      onClick={handleCardClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
+    >
       {/* タイトル */}
       <div className="kanban-card__title">
         {isEditingTitle ? (
@@ -180,17 +190,17 @@ export const Card: React.FC<CardProps> = ({
             onChange={(e) => setEditedTitle(e.target.value)}
             onBlur={handleTitleBlur}
             onKeyDown={handleTitleKeyDown}
-            autoFocus
             onClick={(e) => e.stopPropagation()}
           />
         ) : (
-          <div
+          <button
+            type="button"
             className="kanban-card__title-text"
             onClick={handleTitleClick}
             title={card.title}
           >
             {card.title}
-          </div>
+          </button>
         )}
       </div>
 
@@ -228,12 +238,12 @@ export const Card: React.FC<CardProps> = ({
                     }
                     onBlur={handlePropertyBlur}
                     onKeyDown={handlePropertyKeyDown}
-                    autoFocus
                     onClick={(e) => e.stopPropagation()}
                     title={propName}
                   />
                 ) : (
-                  <span
+                  <button
+                    type="button"
                     className="kanban-card__property-value"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -242,13 +252,13 @@ export const Card: React.FC<CardProps> = ({
                     title={propName}
                   >
                     {formatPropertyValue(value)}
-                  </span>
+                  </button>
                 )}
               </div>
             );
           })}
         </div>
       )}
-    </div>
+    </button>
   );
 };
