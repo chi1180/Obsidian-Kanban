@@ -26,7 +26,7 @@ interface NewCardButtonProps {
  */
 export const NewCardButton: React.FC<NewCardButtonProps> = ({
   columnId,
-  columnTitle,
+  _columnTitle,
   onCreateCard,
   compact = false,
 }) => {

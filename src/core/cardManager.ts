@@ -5,8 +5,8 @@
  * FileOperations と PropertyManager を組み合わせて使用します。
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+ 
+ 
 
 import { App, TFile } from "obsidian";
 import { FileOperations } from "./fileOperations";

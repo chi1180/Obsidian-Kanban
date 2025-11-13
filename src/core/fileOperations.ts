@@ -80,7 +80,7 @@ export class FileOperations {
    */
   async deleteFile(file: TFile): Promise<void> {
     try {
-      await this.app.vault.delete(file);
+      await this.app.fileManager.trashFile(file);
     } catch (error) {
       console.error("Failed to delete file:", error);
       throw new Error(`Failed to delete file: ${error.message}`);

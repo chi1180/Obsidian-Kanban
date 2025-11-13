@@ -5,9 +5,8 @@
  */
 
 import React from "react";
-import ReactDOM from "react-dom";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
-import { KanbanColumn, KanbanCard } from "../types/kanban";
+import { KanbanColumn } from "../types/kanban";
 import { CardSize } from "../types/settings";
 import { Card } from "./Card";
 import { NewCardButton } from "./NewCardButton";
@@ -74,7 +73,7 @@ export const Column: React.FC<ColumnProps> = ({
       <Droppable
         droppableId={column.id}
         isDropDisabled={!enableDragAndDrop}
-        renderClone={(provided, snapshot, rubric) => {
+        renderClone={(provided, _snapshot, rubric) => {
           const card = column.cards[rubric.source.index];
           return (
             <div
@@ -95,7 +94,7 @@ export const Column: React.FC<ColumnProps> = ({
           );
         }}
       >
-        {(provided, snapshot) => (
+        {(provided, _snapshot) => (
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}

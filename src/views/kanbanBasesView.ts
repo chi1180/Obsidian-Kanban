@@ -4,8 +4,8 @@
  * Bases Plugin の View として動作する Kanban ボード
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+ 
+ 
 
 import { BasesView, TFile, HoverParent, HoverPopover } from "obsidian";
 import { Root, createRoot } from "react-dom/client";

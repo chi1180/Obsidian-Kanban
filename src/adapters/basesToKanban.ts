@@ -4,8 +4,8 @@
  * Bases Plugin から取得したデータを Kanban ボードで使用できる形式に変換します。
  */
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+ 
+ 
 
 import { KanbanCard, KanbanColumn, KanbanBoardData } from "../types/kanban";
 

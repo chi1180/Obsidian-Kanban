@@ -24,7 +24,8 @@ export class KanbanSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     // ヘッダー
-    containerEl.createEl("h2", { text: "Obsidian better Kanban Settings" });
+    // eslint-disable-next-line obsidianmd/ui/sentence-case
+    new Setting(containerEl).setName("Obsidian better Kanban").setHeading();
 
     containerEl.createEl("p", {
       text: "These are default settings. Each board can override these settings individually.",

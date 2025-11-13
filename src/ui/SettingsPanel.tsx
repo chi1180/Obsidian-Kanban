@@ -72,7 +72,7 @@ export class SettingsPanel extends Modal {
     contentEl.empty();
 
     // タイトル
-    contentEl.createEl("h2", { text: "Kanban View Settings" });
+    contentEl.createEl("h2", { text: "Kanban view settings" });
 
     // 説明（リアルタイム保存の案内）
     const infoEl = contentEl.createDiv({ cls: "callout" });
@@ -85,10 +85,11 @@ export class SettingsPanel extends Modal {
 
     // Column Property
     new Setting(contentEl)
-      .setName("Column Property")
+      .setName("Column property")
       .setDesc("Property to use for columns (grouping)")
       .addText((text) =>
         text
+          // eslint-disable-next-line obsidianmd/ui/sentence-case
           .setPlaceholder("status")
           .setValue(this.columnProperty)
           .onChange((value) => {
@@ -99,14 +100,11 @@ export class SettingsPanel extends Modal {
 
     // Card Size
     new Setting(contentEl)
-      .setName("Card Size")
+      .setName("Card size")
       .setDesc("Size of cards in the board")
       .addDropdown((dropdown) => {
         CARD_SIZES.forEach((size) => {
-          dropdown.addOption(
-            size,
-            size.charAt(0).toUpperCase() + size.slice(1),
-          );
+          dropdown.addOption(size, size);
         });
         dropdown.setValue(this.cardSize).onChange((value) => {
           this.cardSize = value as CardSize;
@@ -116,14 +114,11 @@ export class SettingsPanel extends Modal {
 
     // Sort Order
     new Setting(contentEl)
-      .setName("Sort Order")
+      .setName("Sort order")
       .setDesc("Order to sort cards within columns")
       .addDropdown((dropdown) => {
         SORT_ORDERS.forEach((order) => {
-          dropdown.addOption(
-            order,
-            order.charAt(0).toUpperCase() + order.slice(1),
-          );
+          dropdown.addOption(order, order);
         });
         dropdown.setValue(this.sortOrder).onChange((value) => {
           this.sortOrder = value as SortOrder;
@@ -133,7 +128,7 @@ export class SettingsPanel extends Modal {
 
     // Enable Drag and Drop
     new Setting(contentEl)
-      .setName("Enable Drag and Drop")
+      .setName("Enable drag and drop")
       .setDesc("Allow dragging cards between columns")
       .addToggle((toggle) =>
         toggle.setValue(this.enableDragAndDrop).onChange((value) => {
@@ -144,7 +139,7 @@ export class SettingsPanel extends Modal {
 
     // Show Card Count
     new Setting(contentEl)
-      .setName("Show Card Count")
+      .setName("Show card count")
       .setDesc("Display number of cards in each column")
       .addToggle((toggle) =>
         toggle.setValue(this.showCardCount).onChange((value) => {
@@ -155,7 +150,7 @@ export class SettingsPanel extends Modal {
 
     // Compact Mode
     new Setting(contentEl)
-      .setName("Compact Mode")
+      .setName("Compact mode")
       .setDesc("Use compact card layout")
       .addToggle((toggle) =>
         toggle.setValue(this.compactMode).onChange((value) => {
