@@ -38,6 +38,19 @@ interface CardProps {
 
   /** プロパティ編集時のコールバック */
   onPropertyEdit?: (file: TFile, property: string, newValue: unknown) => void;
+
+  /** カラムの色情報 */
+  columnColor?: {
+    background: string;
+    text: string;
+    dot: string;
+  };
+
+  /** プロパティごとの利用可能なタグ値 */
+  availableTags?: Record<string, string[]>;
+
+  /** カード削除時のコールバック */
+  onDelete?: (file: TFile) => void;
 }
 
 /**
@@ -52,6 +65,9 @@ export const Card: React.FC<CardProps> = ({
   onTitleEdit,
   onPropertyEdit,
   draggable = true,
+  columnColor,
+  availableTags,
+  onDelete,
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(card.title);
@@ -161,12 +177,70 @@ export const Card: React.FC<CardProps> = ({
     .filter(Boolean)
     .join(" ");
 
-  // visibleProperties から "note." などのプレフィックスを除去
-  const normalizedVisibleProperties = visibleProperties.map((prop) => {
-    // "note.tags" -> "tags", "file.path" -> "path" など
-    const lastDotIndex = prop.lastIndexOf(".");
-    return lastDotIndex !== -1 ? prop.substring(lastDotIndex + 1) : prop;
-  });
+  // visibleProperties から "note." などのプレフィックスを除去し、
+  // タイトル系のプロパティを除外
+  const normalizedVisibleProperties = visibleProperties
+    .filter((prop) => {
+      // 正規化前のプロパティ名でタイトルをチェック
+      const lastDotIndex = prop.lastIndexOf(".");
+      const normalizedProp =
+        lastDotIndex !== -1 ? prop.substring(lastDotIndex + 1) : prop;
+      // title, name などのタイトル系プロパティをスキップ
+      return normalizedProp !== "title" && normalizedProp !== "name";
+    })
+    .map((prop) => {
+      // "note.tags" -> "tags", "file.path" -> "path" など
+      const lastDotIndex = prop.lastIndexOf(".");
+      return lastDotIndex !== -1 ? prop.substring(lastDotIndex + 1) : prop;
+    });
+
+  // カードのホバー時に削除ボタンの位置を計算（useCallbackでメモ化）
+  const updateDeleteButtonPosition = useCallback(() => {
+    if (cardRef.current && isHovered && onDelete) {
+      const rect = cardRef.current.getBoundingClientRect();
+      setDeleteButtonPosition({
+        top: rect.top + 8,
+        right: window.innerWidth - rect.right + 8,
+      });
+    } else {
+      setDeleteButtonPosition(null);
+    }
+  }, [isHovered, onDelete]);
+
+  // ホバー状態が変わったら位置を更新
+  React.useEffect(() => {
+    updateDeleteButtonPosition();
+
+    if (isHovered && onDelete) {
+      // スクロールやリサイズ時にも位置を更新
+      window.addEventListener("scroll", updateDeleteButtonPosition, true);
+      window.addEventListener("resize", updateDeleteButtonPosition);
+      return () => {
+        window.removeEventListener("scroll", updateDeleteButtonPosition, true);
+        window.removeEventListener("resize", updateDeleteButtonPosition);
+      };
+    }
+  }, [isHovered, onDelete, updateDeleteButtonPosition]);
+
+  // 削除ボタンのクリック
+  const handleDeleteButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowDeleteModal(true);
+  };
+
+  // カード削除確定
+  const handleDeleteConfirm = () => {
+    if (onDelete) {
+      onDelete(card.file);
+    }
+    setShowDeleteModal(false);
+  };
+
+  // カード削除キャンセル
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+  };
 
   return (
     <div
@@ -205,14 +279,14 @@ export const Card: React.FC<CardProps> = ({
         )}
       </div>
 
-      {/* プロパティ */}
-      {!compact && normalizedVisibleProperties.length > 0 && (
-        <div className="kanban-card__properties">
-          {normalizedVisibleProperties.map((propName) => {
-            // タイトルは既に表示しているのでスキップ
-            if (propName === "title") {
-              return null;
-            }
+      {/* 削除確認モーダル */}
+      {showDeleteModal && (
+        <DeleteConfirmModal
+          cardTitle={card.title}
+          onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel}
+        />
+      )}
 
             const value = card.properties[propName];
 

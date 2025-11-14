@@ -23,6 +23,8 @@ export class SettingsPanel extends Modal {
   private enableDragAndDrop: boolean;
   private showCardCount: boolean;
   private compactMode: boolean;
+  private showColumnColors: boolean;
+  private columnOrder: string[];
 
   constructor(app: App, config: BasesViewConfig, onSave: () => void) {
     super(app);
@@ -36,6 +38,8 @@ export class SettingsPanel extends Modal {
     this.enableDragAndDrop = config.get("enableDragAndDrop") !== false;
     this.showCardCount = config.get("showCardCount") !== false;
     this.compactMode = config.get("compactMode") === true;
+    this.showColumnColors = config.get("showColumnColors") !== false;
+    this.columnOrder = (config.get("columnOrder") as string[]) || [];
   }
 
   /**
@@ -48,6 +52,7 @@ export class SettingsPanel extends Modal {
     this.config.set("enableDragAndDrop", this.enableDragAndDrop);
     this.config.set("showCardCount", this.showCardCount);
     this.config.set("compactMode", this.compactMode);
+    this.config.set("showColumnColors", this.showColumnColors);
 
     // 保存後にビューを再レンダリング
     this.onSave();
@@ -159,7 +164,146 @@ export class SettingsPanel extends Modal {
         }),
       );
 
+    // Show Column Colors
+    new Setting(contentEl)
+      .setName("Show column colors")
+      .setDesc("Display colors for each column (Notion-style)")
+      .addToggle((toggle) =>
+        toggle.setValue(this.showColumnColors).onChange((value) => {
+          this.showColumnColors = value;
+          this.saveRealtime();
+        }),
+      );
+
+    // Column Order (ドラッグ&ドロップで並び替え可能)
+    const columnOrderSetting = new Setting(contentEl)
+      .setName("Column order")
+      .setDesc(
+        "Drag and drop to reorder columns. Changes are saved automatically.",
+      );
+
+    if (this.columnOrder.length > 0) {
+      const orderContainer = columnOrderSetting.descEl.createDiv({
+        cls: "kanban-settings-panel__column-order-list",
+      });
+
+      this.renderColumnOrderList(orderContainer);
+    } else {
+      const orderContainer = columnOrderSetting.descEl.createDiv({
+        cls: "kanban-settings-panel__column-order",
+      });
+      orderContainer.createEl("p", {
+        text: "No custom order set. Columns are sorted alphabetically.",
+        cls: "kanban-settings-panel__column-order-text",
+      });
+    }
+
+    // Reset Column Order ボタン
+    if (this.columnOrder.length > 0) {
+      new Setting(contentEl)
+        .setName("Reset column order")
+        .setDesc("Reset to default alphabetical order")
+        .addButton((button) =>
+          button
+            .setButtonText("Reset")
+            .setWarning()
+            .onClick(() => {
+              this.config.set("columnOrder", []);
+              this.columnOrder = [];
+              this.onSave();
+              this.close();
+            }),
+        );
+    }
+
     console.log("SettingsPanel: UI rendered");
+  }
+
+  /**
+   * カラム順序リストをレンダリング（ドラッグ&ドロップ対応）
+   */
+  private renderColumnOrderList(container: HTMLElement): void {
+    container.empty();
+
+    this.columnOrder.forEach((columnId, index) => {
+      const itemEl = container.createDiv({
+        cls: "kanban-settings-panel__column-order-item",
+      });
+      itemEl.setAttribute("draggable", "true");
+      itemEl.setAttribute("data-index", index.toString());
+
+      // ドラッグハンドル
+      const handleEl = itemEl.createDiv({
+        cls: "kanban-settings-panel__column-order-handle",
+      });
+      handleEl.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>`;
+
+      // カラム名
+      itemEl.createDiv({
+        cls: "kanban-settings-panel__column-order-name",
+        text: columnId,
+      });
+
+      // 削除ボタン
+      const deleteBtn = itemEl.createDiv({
+        cls: "kanban-settings-panel__column-order-delete",
+      });
+      deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+      deleteBtn.setAttribute("aria-label", `Remove ${columnId} from order`);
+      deleteBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        this.columnOrder.splice(index, 1);
+        this.config.set("columnOrder", this.columnOrder);
+        this.onSave();
+        this.renderColumnOrderList(container);
+      });
+
+      // ドラッグイベント
+      itemEl.addEventListener("dragstart", (e) => {
+        itemEl.addClass("kanban-settings-panel__column-order-item--dragging");
+        e.dataTransfer?.setData("text/plain", index.toString());
+      });
+
+      itemEl.addEventListener("dragend", () => {
+        itemEl.removeClass(
+          "kanban-settings-panel__column-order-item--dragging",
+        );
+      });
+
+      itemEl.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        itemEl.addClass("kanban-settings-panel__column-order-item--dragover");
+      });
+
+      itemEl.addEventListener("dragleave", () => {
+        itemEl.removeClass(
+          "kanban-settings-panel__column-order-item--dragover",
+        );
+      });
+
+      itemEl.addEventListener("drop", (e) => {
+        e.preventDefault();
+        itemEl.removeClass(
+          "kanban-settings-panel__column-order-item--dragover",
+        );
+
+        const fromIndex = parseInt(
+          e.dataTransfer?.getData("text/plain") || "0",
+        );
+        const toIndex = index;
+
+        if (fromIndex !== toIndex) {
+          // 配列を並び替え
+          const [movedItem] = this.columnOrder.splice(fromIndex, 1);
+          this.columnOrder.splice(toIndex, 0, movedItem);
+
+          // 保存して再レンダリング
+          this.config.set("columnOrder", this.columnOrder);
+          this.onSave();
+          this.renderColumnOrderList(container);
+        }
+      });
+    });
   }
 
   onClose(): void {

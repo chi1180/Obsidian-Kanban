@@ -48,6 +48,13 @@ export interface KanbanColumn {
 
   /** カラムの並び順 */
   order: number;
+
+  /** カラムの色情報（オプション） */
+  color?: {
+    background: string;
+    text: string;
+    dot: string;
+  };
 }
 
 /**
@@ -59,6 +66,12 @@ export interface KanbanBoardData {
 
   /** カラムプロパティ名（どのプロパティでグループ化するか） */
   columnProperty: string;
+
+  /** カラムの並び順（カラムIDの配列） */
+  columnOrder?: string[];
+
+  /** プロパティごとの利用可能なタグ値（プロパティ名 → タグ値の配列） */
+  availableTags?: Record<string, string[]>;
 }
 
 /**

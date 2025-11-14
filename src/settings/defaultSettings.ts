@@ -17,4 +17,5 @@ export const DEFAULT_PLUGIN_SETTINGS: KanbanPluginSettings = {
   enableDragAndDrop: true,
   showCardCount: true,
   compactMode: false,
+  showColumnColors: true,
 };

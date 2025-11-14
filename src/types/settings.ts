@@ -31,6 +31,9 @@ export interface KanbanPluginSettings {
 
   /** コンパクトモードを有効にするか */
   compactMode: boolean;
+
+  /** カラムごとに色を表示するか */
+  showColumnColors: boolean;
 }
 
 /**
@@ -43,6 +46,7 @@ export const SETTINGS_KEYS = {
   SHOW_CARD_COUNT: "showCardCount",
   COMPACT_MODE: "compactMode",
   COLUMN_PROPERTY: "columnProperty",
+  SHOW_COLUMN_COLORS: "showColumnColors",
 } as const;
 
 /**

@@ -127,5 +127,18 @@ export class KanbanSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
+
+    // カラムごとに色を表示するか
+    new Setting(containerEl)
+      .setName("Show column colors")
+      .setDesc("Display colors for each column (Notion-style)")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showColumnColors)
+          .onChange(async (value) => {
+            this.plugin.settings.showColumnColors = value;
+            await this.plugin.saveSettings();
+          }),
+      );
   }
 }
