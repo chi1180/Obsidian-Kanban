@@ -78,6 +78,14 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       ref={containerRef}
       className="kanban-tag-selector"
       onClick={(e) => e.stopPropagation()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.stopPropagation();
+        }
+      }}
+      role="dialog"
+      aria-label={`Change ${propertyName}`}
+      tabIndex={0}
     >
       {/* ヘッダー */}
       <div className="kanban-tag-selector__header">

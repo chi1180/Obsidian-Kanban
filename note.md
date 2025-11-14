@@ -4,17 +4,16 @@
 
 ## New features
 
-- [ ] Make card layout more comfortable
-  - [ ] Add [New card] button at the top of each column
-  - [ ] Remove the changing task name method
-  - [ ] Integrate colmen color with hex color code (user can change this appearance in settings)
-  - [ ] Integrate custom input for cards
-    - [ ] Checkbox <Checkbox>
-    - [ ] Date picker <Date>
-    - [ ] Date & time picker <Date & time>
-    - [ ] List input <List>
-    - [ ] Number input <Number>
-    - [ ] Dropdown selector <Tags>
-    - [ ] Text area <Text>
+- [x] Make card layout more comfortable
+  - [x] Add [New card] button at the top of each column
+  - [x] Integrate colmen color with hex color code (user can change this appearance in settings)
+  - [x] Integrate custom input for cards
+    - [x] Checkbox <Checkbox>
+    - [x] Date picker <Date>
+    - [x] Date & time picker <Date & time>
+    - [x] List input <List>
+    - [x] Number input <Number>
+    - [x] Dropdown selector <Tags>
+    - [x] Text area <Text>
 
 now ! i can work on new features !!!

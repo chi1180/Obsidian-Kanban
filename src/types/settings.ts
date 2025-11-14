@@ -34,6 +34,9 @@ export interface KanbanPluginSettings {
 
   /** カラムごとに色を表示するか */
   showColumnColors: boolean;
+
+  /** カード削除時に確認ダイアログを表示するか */
+  showDeleteConfirmDialog: boolean;
 }
 
 /**

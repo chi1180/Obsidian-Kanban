@@ -276,6 +276,22 @@
   opacity: 0.5;
 }
 
+.kanban-column__card-wrapper--temp {
+  /* 一時的な新規カード用のスタイル */
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ==================== Card ==================== */
 
 .kanban-card {
@@ -295,6 +311,12 @@
 
 .kanban-card:hover {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-card--editing {
+  /* 編集中のカードのスタイル */
+  box-shadow: 0 0 0 2px var(--interactive-accent);
+  border-color: var(--interactive-accent);
 }
 
 .kanban-card--draggable {
@@ -525,12 +547,33 @@
   opacity: 0.85;
 }
 
-/* ステータスプロパティのドット */
+/* カラムプロパティ（分類用プロパティ）のスタイル - Notion風 */
+.kanban-card__property-value--column {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.85em;
+  font-weight: 500;
+  width: auto;
+  background-color: var(--property-bg-color);
+  color: var(--property-text-color);
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.kanban-card__property-value--column:hover {
+  opacity: 0.85;
+}
+
+/* ステータス/カラムプロパティのドット */
 .kanban-card__property-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   flex-shrink: 0;
+  background-color: var(--property-dot-color);
 }
 
 /* タグプロパティ（配列値）のコンテナ */
@@ -557,6 +600,40 @@
 
 .kanban-card__property-tag:hover {
   opacity: 0.8;
+}
+
+/* List プロパティ（複数選択） */
+.kanban-card__property-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 8px;
+  margin: 0 -8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.kanban-card__property-list:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.kanban-card__property-list-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px; /* Tags より弱めの border-radius */
+  font-size: 0.85em;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.kanban-card__property-list-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .kanban-card__property-input {
@@ -1214,10 +1291,38 @@
 .delete-modal__actions {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 8px;
   padding: 16px 20px;
   border-top: 1px solid var(--background-modifier-border);
+}
+
+.delete-modal__buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.delete-modal__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+  color: var(--text-muted);
+  cursor: pointer;
+  user-select: none;
+}
+
+.delete-modal__checkbox-label:hover {
+  color: var(--text-normal);
+}
+
+.delete-modal__checkbox {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin: 0;
 }
 
 .delete-modal__button {
@@ -1252,4 +1357,326 @@
 
 .delete-modal__button--delete:hover {
   background-color: #d84343;
+}
+
+/* ==================== Property Editors ==================== */
+
+/* 共通のエディタスタイル */
+.kanban-property-editor {
+  display: inline-block;
+  min-width: 150px;
+}
+
+/* チェックボックスエディタ */
+.kanban-checkbox-editor {
+  display: inline-flex;
+  align-items: center;
+}
+
+.kanban-checkbox-editor__label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin: 0;
+}
+
+.kanban-checkbox-editor__input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.kanban-card__property-checkbox {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.kanban-card__property-checkbox:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.kanban-card__property-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.kanban-card__property-checkbox-label input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+  margin: 0;
+}
+
+.kanban-card__property-name {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* 日付エディタ */
+.kanban-date-editor__input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+}
+
+.kanban-date-editor__input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* 日時エディタ */
+.kanban-datetime-editor__input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+}
+
+.kanban-datetime-editor__input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* 数値エディタ */
+.kanban-number-editor__input {
+  width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+}
+
+.kanban-number-editor__input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* テキストエディタ */
+.kanban-text-editor__input {
+  width: 100%;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+  resize: none;
+  overflow: hidden;
+}
+
+.kanban-text-editor__input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+  box-shadow: 0 0 0 2px var(--interactive-accent-hover);
+}
+
+/* リストエディタ */
+.kanban-list-editor {
+  position: absolute;
+  z-index: 1000;
+  min-width: 250px;
+  max-width: 350px;
+  background-color: var(--background-primary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.kanban-list-editor__header {
+  padding: 8px 8px 12px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 8px;
+}
+
+.kanban-list-editor__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-normal);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kanban-list-editor__selected {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background-color: var(--background-secondary);
+  border-radius: 6px;
+}
+
+.kanban-list-editor__selected-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  position: relative;
+}
+
+.kanban-list-editor__selected-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kanban-list-editor__remove-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  color: inherit;
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+}
+
+.kanban-list-editor__remove-button:hover {
+  opacity: 1;
+}
+
+.kanban-list-editor__options {
+  margin-bottom: 12px;
+}
+
+.kanban-list-editor__options-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  padding: 0 4px;
+}
+
+.kanban-list-editor__option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  margin-bottom: 2px;
+}
+
+.kanban-list-editor__option:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+.kanban-list-editor__option:active {
+  background-color: var(--background-modifier-active-hover);
+}
+
+.kanban-list-editor__option--selected {
+  background-color: var(--background-modifier-hover);
+}
+
+.kanban-list-editor__option-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.kanban-list-editor__option-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kanban-list-editor__checkmark {
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.kanban-list-editor__add-new {
+  display: flex;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.kanban-list-editor__input {
+  flex: 1;
+  padding: 6px 8px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background-color: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  font-family: var(--font-interface);
+}
+
+.kanban-list-editor__input:focus {
+  outline: none;
+  border-color: var(--interactive-accent);
+}
+
+.kanban-list-editor__input::placeholder {
+  color: var(--text-faint);
+}
+
+.kanban-list-editor__add-button {
+  padding: 6px 12px;
+  background-color: var(--interactive-accent);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background-color 0.15s ease;
+}
+
+.kanban-list-editor__add-button:hover {
+  background-color: var(--interactive-accent-hover);
+}
+
+.kanban-list-editor__add-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

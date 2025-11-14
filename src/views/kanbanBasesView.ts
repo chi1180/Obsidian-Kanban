@@ -99,6 +99,10 @@ export class KanbanBasesView extends BasesView implements HoverParent {
         this.config.get("showColumnColors") !== false &&
         this.plugin.settings.showColumnColors !== false;
 
+      // 削除確認ダイアログの表示設定を取得
+      const showDeleteConfirmDialog =
+        this.plugin.settings.showDeleteConfirmDialog !== false;
+
       // Kanban データに変換
       const boardData = basesToKanbanData(
         allEntries,
@@ -116,6 +120,7 @@ export class KanbanBasesView extends BasesView implements HoverParent {
           showCardCount,
           compactMode,
           visibleProperties,
+          columnProperty,
           onCardMove: this.handleCardMove.bind(this),
           onCardClick: this.handleCardClick.bind(this),
           onCardTitleEdit: this.handleCardTitleEdit.bind(this),
@@ -124,6 +129,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
           onCardDelete: this.handleCardDelete.bind(this),
           onSettingsClick: this.handleSettingsClick.bind(this),
           onColumnReorder: this.handleColumnReorder.bind(this),
+          showDeleteConfirmDialog,
+          onUpdateSettings: this.handleUpdateSettings.bind(this),
         }),
       );
     } catch {
@@ -477,5 +484,21 @@ export class KanbanBasesView extends BasesView implements HoverParent {
       },
     );
     settingsPanel.open();
+  }
+
+  /**
+   * 設定を更新
+   */
+  private async handleUpdateSettings(key: string, value: any): Promise<void> {
+    try {
+      // プラグイン設定を更新
+      (this.plugin.settings as any)[key] = value;
+      await this.plugin.saveSettings();
+
+      // 再レンダリング
+      this.render();
+    } catch (error) {
+      console.error("Failed to update settings:", error);
+    }
   }
 }

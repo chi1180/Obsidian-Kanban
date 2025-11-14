@@ -166,7 +166,7 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - `getColumnValues()`: カラムプロパティの値一覧を取得
 - `moveCardInBoardData()`: ボードデータ内でカードを移動
 
-#### **View Layer（ビュー層）**
+- **View Layer（ビュー層）**
 
 ##### `src/views/kanbanBasesView.ts`
 
@@ -187,6 +187,7 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - `extractFolderFromFilter()`: フィルター情報からフォルダパスを抽出
 - `getCommonFolderFromEntries()`: 現在表示中のエントリーから共通フォルダを推測
 - `handleColumnReorder()`: カラム並び替え時の処理（順序を config に保存して再レンダリング）
+- **カラムプロパティの受け渡し**: `columnProperty` を KanbanBoard に渡してカード上で色表示を実現
 
 #### **UI Layer（React コンポーネント層）**
 
@@ -208,6 +209,8 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
   - `handleCardDelete`: カードを即座に非表示にし、削除を5秒遅延実行
   - `handleUndo`: カードを再表示し、削除をキャンセル
   - `UndoToast` コンポーネントを表示
+- **Props**:
+  - `columnProperty`: カラムプロパティ名を Column に伝播
 
 ##### `src/ui/Column.tsx`
 
@@ -225,18 +228,43 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - `dragHandleProps` を受け取ってドラッグハンドルに適用
 - **カード非表示機能**: `hiddenCardIds` に含まれるカードは `display: none` で非表示
 - **重要**: ドラッグ中のスタイルを適切に処理してオフセット問題を回避（カラムのドラッグでも `transform` は使用しない）
+- **ツールチップの重複問題** ✅ 修正済み
+  - カード追加ボタンに `aria-label` と `title` の両方が設定されていたため、ツールチップが2つ表示される問題があった
+  - `title` 属性を削除し、`aria-label` のみを使用（Obsidian の慣例に従う）
+  - アクセシビリティラベルと視覚的なツールチップの重複を防止
+- **Props**:
+  - `columnProperty`: カラムプロパティ名を Card に伝播
 
 ##### `src/ui/Card.tsx`
 
 - 1枚のカードを表示
 - タイトルのインライン編集機能
-- プロパティの表示とインライン編集
+- **プロパティの表示とインライン編集** ✅ プロパティタイプごとにカスタムエディタを使用
   - 空のプロパティには「Add {プロパティ名}」プレースホルダーを表示
-  - クリックで編集可能（TagSelector または入力フィールド）
+  - クリックで編集可能（PropertyEditor が自動的に適切なエディタを選択）
+  - プロパティタイプごとに専用のエディタを表示：
+    - **Checkbox**: チェックボックスを直接表示・編集
+    - **Date**: 日付入力フィールド（type="date"）
+    - **DateTime**: 日時入力フィールド（type="datetime-local"）
+    - **Number**: 数値入力フィールド（type="number"）
+    - **Tags**: TagSelector（単一選択、色付きバッジ）
+    - **List**: ListEditor（複数選択、色付きバッジ、新規追加可能）
+    - **Text**: textarea（複数行テキスト、自動リサイズ）
+  - プロパティタイプは値から自動推測（inferPropertyType）
   - **タイトル重複防止**: visibleProperties から "title" と "name" を除外
 - カードサイズ対応（small, medium, large）
 - コンパクトモード対応
 - クリックでファイルを開く
+- **カラムプロパティの色表示** ✅ 実装済み
+  - 分類用のプロパティ（カラムプロパティ）はカード上でカラムと同じ色で表示
+  - Notion 風のデザイン：丸みのある背景、カラーのドット付き
+  - `columnProperty` Props で現在のカラムプロパティ名を受け取る
+  - プロパティ名が `columnProperty` と一致する場合、`columnColor` を適用
+  - CSS 変数でカラムの色を動的に適用（`--property-bg-color`, `--property-text-color`, `--property-dot-color`）
+- Props:
+  - `columnProperty`: カラムプロパティ名（分類用のプロパティ）
+  - `showDeleteConfirmDialog`: 削除確認ダイアログを表示するかどうか（デフォルト: true）
+  - `onUpdateSettings`: 設定更新時のコールバック（key: string, value: any）
 - **削除ボタン**（ホバー時のみ表示）:
   - **カード削除（ホバー時のみ表示）** ✅ 実装済み
     - カードにホバーすると右上に削除アイコン（ゴミ箱）が表示される
@@ -244,6 +272,11 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
     - 確認後、カードが即座に非表示になり、削除を KanbanBoard に通知（遅延実行）
     - ホバー時に赤背景・白アイコンでハイライト
     - 削除ボタンには `aria-label` のみ設定（`title` 属性なし）でツールチップ重複を防止
+    - **削除確認ダイアログの設定** ✅ 実装済み
+      - プラグイン設定に `showDeleteConfirmDialog` を追加（デフォルト: true）
+      - モーダル左下に「Never show again」チェックボックスを表示
+      - チェックすると、次回以降は確認ダイアログをスキップして即座に削除（Undo は表示される）
+      - 設定タブから再度有効化可能（Settings > Obsidian better Kanban > Show confirmation dialog when deleting cards）
     - **ドラッグ防止機構** ✅ 実装済み
       - 削除ボタンの `onMouseDown` で `preventDefault()` と `stopPropagation()` を呼び出し
       - 削除ボタンに `pointer-events: auto` を設定してドラッグハンドルからの伝播を防止
@@ -257,6 +290,65 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - 入力フォームは表示せず、シンプルなボタンのみ
 - 作成後、カード上でタイトルをクリックして編集可能
 - コンパクトモード対応
+
+##### `src/ui/editors/PropertyEditor.tsx`
+
+- プロパティタイプに応じて適切なエディタを振り分ける統合コンポーネント
+- `inferPropertyType()` で値からプロパティタイプを自動推測
+- 各プロパティタイプに応じたエディタコンポーネントをレンダリング
+- Props:
+  - `propertyName`: プロパティ名
+  - `value`: 現在の値
+  - `onChange`: 値変更時のコールバック
+  - `onClose`: 編集完了時のコールバック
+  - `availableOptions`: 利用可能な選択肢（Tags/List の場合）
+  - `forceType`: 強制的に指定するプロパティタイプ（オプション）
+
+##### `src/ui/editors/CheckboxEditor.tsx`
+
+- チェックボックスプロパティを編集するためのエディタ
+- チェックボックスをそのまま表示
+- 変更時に即座に確定
+
+##### `src/ui/editors/DateEditor.tsx`
+
+- 日付プロパティを編集するためのエディタ
+- `input type="date"` を使用
+- Enter キーまたは Blur で確定、Escape でキャンセル
+- マウント時に自動フォーカス
+
+##### `src/ui/editors/DateTimeEditor.tsx`
+
+- 日時プロパティを編集するためのエディタ
+- `input type="datetime-local"` を使用
+- ISO 8601 形式を datetime-local 形式に自動変換
+- Enter キーまたは Blur で確定、Escape でキャンセル
+- マウント時に自動フォーカス
+
+##### `src/ui/editors/NumberEditor.tsx`
+
+- 数値プロパティを編集するためのエディタ
+- `input type="number"` を使用
+- Enter キーまたは Blur で確定、Escape でキャンセル
+- マウント時に自動フォーカス・選択
+
+##### `src/ui/editors/TextEditor.tsx`
+
+- テキストプロパティを編集するためのエディタ
+- `textarea` を使用して複数行テキストに対応
+- 自動リサイズ機能（scrollHeight に合わせて高さを調整）
+- Enter キーで確定、Shift+Enter で改行、Escape でキャンセル
+- マウント時に自動フォーカス・選択
+
+##### `src/ui/editors/ListEditor.tsx`
+
+- リストプロパティを編集するためのエディタ（複数選択可能）
+- Tags エディタと似た UI だが、複数選択が可能
+- 選択済みの値を色付きバッジで表示（削除ボタン付き）
+- 利用可能な選択肢からトグル選択
+- 新しい値をテキスト入力で追加可能
+- 外側クリックまたは Escape キーで閉じる
+- 各値は色付きバッジで表示（色はハッシュから自動生成）
 
 ##### `src/ui/TagSelector.tsx`
 
@@ -290,16 +382,24 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
   - 削除確認メッセージ（カード名を太字で表示）
   - 補足メッセージ（"This will move the file to the trash."）
 - アクション：
-  - Cancel ボタン（グレー、ホバーでライト背景）
-  - Delete ボタン（赤背景、白文字）
+  - 左下：「Never show again」チェックボックス
+  - 右下：Cancel ボタン（グレー、ホバーでライト背景）と Delete ボタン（赤背景、白文字）
 - インタラクション：
   - Escape キーでキャンセル
   - オーバーレイクリックでキャンセル
   - フェードイン/スライドアップアニメーション
+  - Delete ボタンクリック時、チェックボックスが有効なら `onNeverShowAgain()` を呼び出してから `onConfirm()` を実行
+  - **イベント伝播の防止** ✅ 実装済み
+    - モーダル全体（`.delete-modal`）のクリックで `e.stopPropagation()` を呼び出し
+    - Cancel/Delete ボタンのクリックで `e.stopPropagation()` を呼び出し
+    - チェックボックスのクリックで `e.stopPropagation()` を呼び出し
+    - カードの `handleCardClick` に `!showDeleteModal` の条件を追加
+    - これにより、モーダル操作時にカードがクリックされてファイルが開くバグを防止
 - Props：
   - `cardTitle`: 削除するカードのタイトル
   - `onConfirm`: 削除確定時のコールバック
   - `onCancel`: キャンセル時のコールバック
+  - `onNeverShowAgain`: 「Never show again」チェック時のコールバック（設定を false に更新）
 - **ドラッグとの干渉防止**：
   - モーダル表示中は親カードに `kanban-card--modal-open` クラスが追加される
   - このクラスにより `pointer-events: none` が適用され、カードのドラッグが完全に無効化される
@@ -323,6 +423,10 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
     - 各カラムに削除ボタン（順序から除外）
     - 変更は自動保存
   - **Reset Column Order（カラム順序のリセット）** - デフォルトのアルファベット順に戻す
+- **Show confirmation dialog when deleting cards（カード削除時の確認ダイアログ表示）** ✅ 実装済み
+  - トグルスイッチで有効/無効を切り替え
+  - 説明文: "Display a confirmation dialog before deleting a card. You can also disable this from the delete dialog itself."
+  - モーダルの「Never show again」で無効化された場合、ここで再度有効化可能
 - `renderColumnOrderList()`: カラム順序リストをレンダリング（ネイティブHTML5ドラッグ&ドロップAPI使用）
 
 #### **Settings Layer（設定管理層）**
@@ -350,6 +454,34 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
   - Enable drag and drop: true
   - Show card count: true
   - Compact mode: false
+  - Show column colors: true
+  - Show delete confirm dialog: true（カード削除時の確認ダイアログを表示）
+
+#### **Utils Layer（ユーティリティ層）**
+
+##### `src/utils/propertyUtils.ts`
+
+- プロパティタイプ推測ユーティリティ
+- `inferPropertyType()`: 値とプロパティ名からプロパティタイプを推測
+  - boolean → Checkbox
+  - number → Number
+  - 配列 → Tags（プロパティ名に "tag" が含まれる場合）または List
+  - 日付文字列（YYYY-MM-DD） → Date
+  - 日時文字列（ISO 8601） → DateTime
+  - 数値文字列 → Number
+  - その他 → Text
+- `formatPropertyValue()`: プロパティ値を表示用に整形
+  - Checkbox → "✓" または空
+  - Date/DateTime → 日付文字列
+  - Tags/List → カンマ区切り文字列
+  - Number → 数値文字列
+  - Text → 文字列
+- `parsePropertyValue()`: 編集された値を実際のプロパティ値に変換
+  - Checkbox → boolean
+  - Number → number（NaN の場合は null）
+  - Date/DateTime → 日付文字列
+  - Tags/List → カンマ区切りで配列に分割
+  - Text → 文字列
 
 #### **Types Layer（型定義層）**
 
@@ -372,6 +504,18 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - `UpdateCardParams`: カード更新時のパラメータ
 - `CardSize`: カードサイズ（small | medium | large）
 - `SortOrder`: ソート順（created | updated | title | custom）
+- **`PropertyType`**: プロパティタイプの enum ✅ 新規追加
+  - `Text`: テキストプロパティ
+  - `Number`: 数値プロパティ
+  - `Checkbox`: チェックボックスプロパティ
+  - `Date`: 日付プロパティ
+  - `DateTime`: 日時プロパティ
+  - `Tags`: タグプロパティ（単一選択）
+  - `List`: リストプロパティ（複数選択）
+- **`PropertyMetadata`**: プロパティメタデータ ✅ 新規追加
+  - `name`: プロパティ名
+  - `type`: プロパティタイプ
+  - `options`: 利用可能な選択肢（Tags/List の場合）
 
 ##### `src/types/settings.ts`
 
@@ -405,6 +549,15 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 
 - **JSDoc**: 複雑な関数には JSDoc コメントを付与
 - **TODO コメント**: タスクについてはその箇所に `// TODO ::: [ ] here is to do content` を残す
+
+### HTML 属性のベストプラクティス
+
+- **ツールチップの重複を避ける**:
+  - ボタンなどのインタラクティブ要素には `aria-label` のみを使用（Obsidian の慣例）
+  - `aria-label` と `title` 属性を同時に使用しない（ツールチップが2つ表示される）
+  - 情報表示用の `title` 属性（例: カードタイトルやプロパティ名）は問題なし
+  - 例: `<button aria-label="新しいカードを追加">+</button>` ✅
+  - 例: `<button aria-label="追加" title="追加">+</button>` ❌（重複）
 
 ### ドラッグ&ドロップの実装
 
@@ -463,3 +616,8 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - **ドラッグ&ドロップでの gap 使用**: `gap` プロパティもオフセット問題を引き起こすため、flexbox の子要素に `margin` を使用する（最後の要素は `margin: 0`）
 - **position: fixed/absolute の乱用**: レイアウトが崩れる原因になるため、必要最小限に留める
 - **カラムとカードのドラッグの混同**: `type` プロパティで明確に区別する（`type="column"` と デフォルト）
+- **カラムプロパティの色表示** ✅ 実装済み
+  - `.kanban-card__property-value--column`: カラムプロパティ専用のスタイルクラス
+  - CSS 変数で動的に色を適用: `--property-bg-color`, `--property-text-color`, `--property-dot-color`
+  - Notion 風のデザイン: 丸みのある背景（`border-radius: 12px`）、カラードット付き
+  - `.kanban-card__property-dot`: 6px の円形ドット、`background-color: var(--property-dot-color)`

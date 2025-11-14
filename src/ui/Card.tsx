@@ -4,15 +4,15 @@
  * カンバンボード上の1枚のカードを表示します。
  */
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import type { TFile } from "obsidian";
 import type { KanbanCard } from "../types/kanban";
 import type { CardSize } from "../types/settings";
-
-interface EditingState {
-  property: string | null;
-  value: string;
-}
+import { PropertyType } from "../types/kanban";
+import { inferPropertyType, formatPropertyValue } from "../utils/propertyUtils";
+import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import { PropertyEditor } from "./editors/PropertyEditor";
+import { getColumnColorForTheme } from "../utils/colorUtils";
 
 interface CardProps {
   /** カードのデータ */
@@ -46,11 +46,20 @@ interface CardProps {
     dot: string;
   };
 
+  /** カラムプロパティ名（分類用のプロパティ） */
+  columnProperty?: string;
+
   /** プロパティごとの利用可能なタグ値 */
   availableTags?: Record<string, string[]>;
 
   /** カード削除時のコールバック */
   onDelete?: (file: TFile) => void;
+
+  /** 削除確認ダイアログを表示するかどうか */
+  showDeleteConfirmDialog?: boolean;
+
+  /** 設定更新時のコールバック */
+  onUpdateSettings?: (key: string, value: any) => void;
 }
 
 /**
@@ -66,15 +75,18 @@ export const Card: React.FC<CardProps> = ({
   onPropertyEdit,
   draggable = true,
   columnColor,
-  availableTags,
+  columnProperty,
+  availableTags: _availableTags,
   onDelete,
+  showDeleteConfirmDialog = true,
+  onUpdateSettings,
 }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(card.title);
-  const [editingProperty, setEditingProperty] = useState<EditingState>({
-    property: null,
-    value: "",
-  });
+  const [editingProperty, setEditingProperty] = useState<string | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // タイトル編集を開始
   const handleTitleClick = (e: React.MouseEvent) => {
@@ -108,63 +120,29 @@ export const Card: React.FC<CardProps> = ({
 
   // カードクリック
   const handleCardClick = () => {
-    if (onClick && !isEditingTitle && !editingProperty.property) {
+    if (onClick && !isEditingTitle && !editingProperty && !showDeleteModal) {
       onClick(card.file);
     }
   };
 
   // プロパティ編集を開始
-  const handlePropertyClick = (propName: string, currentValue: unknown) => {
+  const handlePropertyClick = (propName: string) => {
     if (onPropertyEdit) {
-      setEditingProperty({
-        property: propName,
-        value: formatPropertyValue(currentValue),
-      });
+      setEditingProperty(propName);
     }
   };
 
-  // プロパティ編集を確定
-  const handlePropertyBlur = () => {
-    if (editingProperty.property && editingProperty.value.trim() !== "") {
-      const propName = editingProperty.property;
-      const originalValue = card.properties[propName];
-      const newValue = editingProperty.value.trim();
-
-      // 値が変更されている場合のみ保存
-      if (newValue !== formatPropertyValue(originalValue) && onPropertyEdit) {
-        // 配列の場合はカンマ区切りで分割
-        let parsedValue: unknown = newValue;
-        if (Array.isArray(originalValue)) {
-          parsedValue = newValue.split(",").map((v) => v.trim());
-        }
-        onPropertyEdit(card.file, propName, parsedValue);
-      }
+  // プロパティ編集を完了
+  const handlePropertyChange = (propName: string, newValue: unknown) => {
+    if (onPropertyEdit) {
+      onPropertyEdit(card.file, propName, newValue);
     }
-    setEditingProperty({ property: null, value: "" });
+    setEditingProperty(null);
   };
 
-  // Enter キーで確定、Escape キーでキャンセル
-  const handlePropertyKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handlePropertyBlur();
-    } else if (e.key === "Escape") {
-      setEditingProperty({ property: null, value: "" });
-    }
-  };
-
-  // プロパティ値を表示用に整形
-  const formatPropertyValue = (value: unknown): string => {
-    if (value === undefined || value === null) {
-      return "";
-    }
-    if (Array.isArray(value)) {
-      return value.join(", ");
-    }
-    if (typeof value === "object") {
-      return JSON.stringify(value);
-    }
-    return String(value);
+  // プロパティ編集をキャンセル
+  const handlePropertyClose = () => {
+    setEditingProperty(null);
   };
 
   // カードのクラス名を生成
@@ -194,38 +172,19 @@ export const Card: React.FC<CardProps> = ({
       return lastDotIndex !== -1 ? prop.substring(lastDotIndex + 1) : prop;
     });
 
-  // カードのホバー時に削除ボタンの位置を計算（useCallbackでメモ化）
-  const updateDeleteButtonPosition = useCallback(() => {
-    if (cardRef.current && isHovered && onDelete) {
-      const rect = cardRef.current.getBoundingClientRect();
-      setDeleteButtonPosition({
-        top: rect.top + 8,
-        right: window.innerWidth - rect.right + 8,
-      });
-    } else {
-      setDeleteButtonPosition(null);
-    }
-  }, [isHovered, onDelete]);
-
-  // ホバー状態が変わったら位置を更新
-  React.useEffect(() => {
-    updateDeleteButtonPosition();
-
-    if (isHovered && onDelete) {
-      // スクロールやリサイズ時にも位置を更新
-      window.addEventListener("scroll", updateDeleteButtonPosition, true);
-      window.addEventListener("resize", updateDeleteButtonPosition);
-      return () => {
-        window.removeEventListener("scroll", updateDeleteButtonPosition, true);
-        window.removeEventListener("resize", updateDeleteButtonPosition);
-      };
-    }
-  }, [isHovered, onDelete, updateDeleteButtonPosition]);
-
   // 削除ボタンのクリック
   const handleDeleteButtonClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // ダイアログをスキップする設定の場合は直接削除
+    if (!showDeleteConfirmDialog) {
+      if (onDelete) {
+        onDelete(card.file);
+      }
+      return;
+    }
+
     setShowDeleteModal(true);
   };
 
@@ -242,10 +201,20 @@ export const Card: React.FC<CardProps> = ({
     setShowDeleteModal(false);
   };
 
+  // "Never show again" がチェックされたときの処理
+  const handleNeverShowAgain = () => {
+    if (onUpdateSettings) {
+      onUpdateSettings("showDeleteConfirmDialog", false);
+    }
+  };
+
   return (
     <div
-      className={cardClassName}
+      ref={cardRef}
+      className={`${cardClassName} ${showDeleteModal ? "kanban-card--modal-open" : ""}`}
       onClick={handleCardClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
@@ -279,15 +248,50 @@ export const Card: React.FC<CardProps> = ({
         )}
       </div>
 
+      {/* 削除ボタン */}
+      {isHovered && onDelete && (
+        <button
+          type="button"
+          className="kanban-card__delete-button"
+          onClick={handleDeleteButtonClick}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          aria-label="Delete card"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M3 6h18" />
+            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+          </svg>
+        </button>
+      )}
+
       {/* 削除確認モーダル */}
       {showDeleteModal && (
         <DeleteConfirmModal
           cardTitle={card.title}
           onConfirm={handleDeleteConfirm}
           onCancel={handleDeleteCancel}
+          onNeverShowAgain={handleNeverShowAgain}
         />
       )}
 
+      {/* プロパティ */}
+      {normalizedVisibleProperties.length > 0 && (
+        <div className="kanban-card__properties">
+          {normalizedVisibleProperties.map((propName) => {
             const value = card.properties[propName];
 
             // 値が空の場合はスキップ
@@ -295,39 +299,122 @@ export const Card: React.FC<CardProps> = ({
               return null;
             }
 
-            const isEditing =
-              editingProperty.property === propName && !!onPropertyEdit;
+            // カラムプロパティかどうかを判定
+            const isColumnProperty = columnProperty === propName;
 
-            return (
-              <div key={propName} className="kanban-card__property">
-                {isEditing ? (
-                  <input
-                    type="text"
-                    className="kanban-card__property-input"
-                    value={editingProperty.value}
-                    onChange={(e) =>
-                      setEditingProperty({
-                        ...editingProperty,
-                        value: e.target.value,
-                      })
-                    }
-                    onBlur={handlePropertyBlur}
-                    onKeyDown={handlePropertyKeyDown}
-                    onClick={(e) => e.stopPropagation()}
-                    title={propName}
-                    autoFocus
-                  />
-                ) : (
+            // カラムプロパティの場合、カラムの色を適用
+            const propertyStyle =
+              isColumnProperty && columnColor
+                ? ({
+                    "--property-bg-color": columnColor.background,
+                    "--property-text-color": columnColor.text,
+                    "--property-dot-color": columnColor.dot,
+                  } as React.CSSProperties)
+                : undefined;
+
+            const propertyClassName = `kanban-card__property-value ${
+              isColumnProperty ? "kanban-card__property-value--column" : ""
+            }`;
+
+            // プロパティタイプを推測
+            const propertyType = inferPropertyType(value, propName);
+            const isEditingProperty =
+              editingProperty === propName && !!onPropertyEdit;
+
+            // チェックボックスタイプの場合は常に表示（編集可能状態）
+            if (propertyType === PropertyType.Checkbox && !isEditingProperty) {
+              return (
+                <div key={propName} className="kanban-card__property">
                   <div
-                    className="kanban-card__property-value"
+                    className="kanban-card__property-checkbox"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handlePropertyClick(propName, value);
+                      handlePropertyClick(propName);
                     }}
                     title={propName}
                   >
-                    {formatPropertyValue(value)}
+                    <label className="kanban-card__property-checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(value)}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          handlePropertyChange(propName, e.target.checked);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <span className="kanban-card__property-name">
+                        {propName}
+                      </span>
+                    </label>
                   </div>
+                </div>
+              );
+            }
+
+            return (
+              <div key={propName} className="kanban-card__property">
+                {isEditingProperty ? (
+                  <PropertyEditor
+                    propertyName={propName}
+                    value={value}
+                    onChange={(newValue) =>
+                      handlePropertyChange(propName, newValue)
+                    }
+                    onClose={handlePropertyClose}
+                    availableOptions={_availableTags?.[propName] || []}
+                  />
+                ) : (
+                  <>
+                    {propertyType === PropertyType.List &&
+                    Array.isArray(value) ? (
+                      <div
+                        className="kanban-card__property-list"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePropertyClick(propName);
+                        }}
+                        title={propName}
+                      >
+                        {value.map((item, index) => {
+                          const itemColor = getColumnColorForTheme(
+                            String(item),
+                          );
+                          return (
+                            <span
+                              key={index}
+                              className="kanban-card__property-list-item"
+                              style={{
+                                backgroundColor: itemColor.background,
+                                color: itemColor.text,
+                              }}
+                            >
+                              <span
+                                className="kanban-card__property-list-dot"
+                                style={{ backgroundColor: itemColor.dot }}
+                              />
+                              {String(item)}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div
+                        className={propertyClassName}
+                        style={propertyStyle}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePropertyClick(propName);
+                        }}
+                        title={propName}
+                      >
+                        {isColumnProperty && columnColor && (
+                          <span className="kanban-card__property-dot" />
+                        )}
+                        {formatPropertyValue(value, propertyType)}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             );

@@ -38,6 +38,9 @@ interface KanbanBoardProps {
   /** 表示するプロパティのリスト */
   visibleProperties: string[];
 
+  /** カラムプロパティ名（分類用のプロパティ） */
+  columnProperty?: string;
+
   /** カードが別のカラムに移動されたときのコールバック */
   onCardMove?: (cardId: string, newColumnId: string) => void;
 
@@ -65,6 +68,12 @@ interface KanbanBoardProps {
     destinationIndex: number,
     newColumnOrder: string[],
   ) => void;
+
+  /** 削除確認ダイアログを表示するか */
+  showDeleteConfirmDialog?: boolean;
+
+  /** 設定更新時のコールバック */
+  onUpdateSettings?: (key: string, value: any) => void;
 }
 
 /**
@@ -77,6 +86,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   showCardCount,
   compactMode,
   visibleProperties,
+  columnProperty,
   onCardMove,
   onCardClick,
   onCardTitleEdit,
@@ -85,6 +95,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   onCardDelete,
   onSettingsClick,
   onColumnReorder,
+  showDeleteConfirmDialog = true,
+  onUpdateSettings,
 }) => {
   // 削除待ちのカード情報を保持
   const [pendingDelete, setPendingDelete] = useState<{
@@ -147,6 +159,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
   // トーストを閉じる（削除を実行）
   const handleToastClose = () => {
     setPendingDelete(null);
+  };
+
+  // 設定更新ハンドラー
+  const handleUpdateSettings = (key: string, value: any) => {
+    if (onUpdateSettings) {
+      onUpdateSettings(key, value);
+    }
   };
 
   // ドラッグ&ドロップ終了時の処理
@@ -233,12 +252,15 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   showCardCount={showCardCount}
                   visibleProperties={visibleProperties}
                   enableDragAndDrop={enableDragAndDrop}
+                  columnProperty={columnProperty}
                   onCardClick={onCardClick}
                   onCardTitleEdit={onCardTitleEdit}
                   onCreateCard={onCreateCard}
                   onPropertyEdit={onPropertyEdit}
                   dragHandleProps={provided.dragHandleProps}
                   availableTags={boardData.availableTags}
+                  showDeleteConfirmDialog={showDeleteConfirmDialog}
+                  onUpdateSettings={handleUpdateSettings}
                 />
               </div>
             );
@@ -277,6 +299,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         showCardCount={showCardCount}
                         visibleProperties={visibleProperties}
                         enableDragAndDrop={enableDragAndDrop}
+                        columnProperty={columnProperty}
                         onCardClick={onCardClick}
                         onCardTitleEdit={onCardTitleEdit}
                         onCreateCard={onCreateCard}
@@ -285,6 +308,8 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         dragHandleProps={provided.dragHandleProps}
                         availableTags={boardData.availableTags}
                         hiddenCardIds={hiddenCardIds}
+                        showDeleteConfirmDialog={showDeleteConfirmDialog}
+                        onUpdateSettings={handleUpdateSettings}
                       />
                     </div>
                   )}

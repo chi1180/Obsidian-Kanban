@@ -4,13 +4,13 @@
  * カンバンボードの1つのカラム（列）を表示します。
  */
 
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Droppable,
   Draggable,
   DraggableProvidedDragHandleProps,
 } from "@hello-pangea/dnd";
-import { KanbanColumn } from "../types/kanban";
+import { KanbanColumn, KanbanCard } from "../types/kanban";
 import { CardSize } from "../types/settings";
 import { Card } from "./Card";
 import { NewCardButton } from "./NewCardButton";
@@ -36,6 +36,9 @@ interface ColumnProps {
   /** ドラッグ&ドロップを有効にするか */
   enableDragAndDrop: boolean;
 
+  /** カラムプロパティ名（分類用のプロパティ） */
+  columnProperty?: string;
+
   /** カードクリック時のコールバック */
   onCardClick?: (file: TFile) => void;
 
@@ -50,6 +53,12 @@ interface ColumnProps {
 
   /** カード削除時のコールバック */
   onCardDelete?: (file: TFile) => void;
+
+  /** 削除確認ダイアログを表示するか */
+  showDeleteConfirmDialog?: boolean;
+
+  /** 設定更新時のコールバック */
+  onUpdateSettings?: (key: string, value: any) => void;
 
   /** ドラッグハンドルのプロパティ */
   dragHandleProps?: DraggableProvidedDragHandleProps | null;
@@ -71,15 +80,29 @@ export const Column: React.FC<ColumnProps> = ({
   showCardCount,
   visibleProperties,
   enableDragAndDrop,
+  columnProperty,
   onCardClick,
   onCardTitleEdit,
   onCreateCard,
   onPropertyEdit,
   onCardDelete,
+  showDeleteConfirmDialog,
+  onUpdateSettings,
   dragHandleProps,
   availableTags,
   hiddenCardIds,
 }) => {
+  // 一時的な新規カードの管理
+  const [tempNewCard, setTempNewCard] = useState<KanbanCard | null>(null);
+  const cardInputRef = useRef<HTMLInputElement>(null);
+
+  // 新規カード作成時にフォーカスを当てる
+  useEffect(() => {
+    if (tempNewCard && cardInputRef.current) {
+      cardInputRef.current.focus();
+    }
+  }, [tempNewCard]);
+
   // カラムの色を CSS 変数として設定
   const columnStyle = column.color
     ? ({
@@ -88,6 +111,34 @@ export const Column: React.FC<ColumnProps> = ({
         "--column-dot-color": column.color.dot,
       } as React.CSSProperties)
     : undefined;
+
+  // カラム右上の「+」ボタンクリック時の処理
+  const handleHeaderAddClick = () => {
+    // 一時的な新規カードを作成
+    const newCard: KanbanCard = {
+      id: `temp-${Date.now()}`,
+      title: "Untitled",
+      properties: {},
+      file: null as any, // 一時的にnullを設定
+      columnId: column.id,
+    };
+    setTempNewCard(newCard);
+  };
+
+  // 新規カードのフォーカスが切れた時の処理
+  const handleTempCardBlur = () => {
+    // フォーカスが切れたら、既存のカード作成処理を実行
+    if (tempNewCard && onCreateCard) {
+      onCreateCard(column.id, tempNewCard.title);
+    }
+    // 一時カードをクリア
+    setTempNewCard(null);
+  };
+
+  // 表示するカードのリスト（一時カードを先頭に追加）
+  const displayCards = tempNewCard
+    ? [tempNewCard, ...column.cards]
+    : column.cards;
 
   return (
     <div
@@ -124,9 +175,8 @@ export const Column: React.FC<ColumnProps> = ({
             <button
               type="button"
               className="kanban-column__add-button"
-              onClick={() => onCreateCard(column.id, "Untitled")}
+              onClick={handleHeaderAddClick}
               aria-label="新しいカードを追加"
-              title="新しいカードを追加"
             >
               +
             </button>
@@ -155,7 +205,10 @@ export const Column: React.FC<ColumnProps> = ({
                 visibleProperties={visibleProperties}
                 draggable={enableDragAndDrop}
                 columnColor={column.color}
+                columnProperty={columnProperty}
                 availableTags={availableTags}
+                showDeleteConfirmDialog={showDeleteConfirmDialog}
+                onUpdateSettings={onUpdateSettings}
               />
             </div>
           );
@@ -171,9 +224,51 @@ export const Column: React.FC<ColumnProps> = ({
                 : ""
             }`}
           >
-            {column.cards.map((card, index) => {
+            {displayCards.map((card, index) => {
               // 非表示にするカードはスキップ
               const isHidden = hiddenCardIds?.has(card.id);
+
+              // 一時カードかどうかを判定
+              const isTempCard = card.id === tempNewCard?.id;
+
+              // 一時カードの場合はドラッグ不可で、特別な処理を適用
+              if (isTempCard) {
+                return (
+                  <div
+                    key={card.id}
+                    className="kanban-column__card-wrapper kanban-column__card-wrapper--temp"
+                  >
+                    <div className="kanban-card kanban-card--medium kanban-card--editing">
+                      <div className="kanban-card__title">
+                        <input
+                          ref={cardInputRef}
+                          type="text"
+                          className="kanban-card__title-input"
+                          value={card.title}
+                          onChange={(e) => {
+                            if (tempNewCard) {
+                              setTempNewCard({
+                                ...tempNewCard,
+                                title: e.target.value,
+                              });
+                            }
+                          }}
+                          onBlur={handleTempCardBlur}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleTempCardBlur();
+                            } else if (e.key === "Escape") {
+                              setTempNewCard(null);
+                            }
+                          }}
+                          placeholder="Enter card title..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               return (
                 <Draggable
@@ -208,7 +303,10 @@ export const Column: React.FC<ColumnProps> = ({
                         onDelete={onCardDelete}
                         draggable={enableDragAndDrop}
                         columnColor={column.color}
+                        columnProperty={columnProperty}
                         availableTags={availableTags}
+                        showDeleteConfirmDialog={showDeleteConfirmDialog}
+                        onUpdateSettings={onUpdateSettings}
                       />
                     </div>
                   )}

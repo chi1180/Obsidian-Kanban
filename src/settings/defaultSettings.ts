@@ -18,4 +18,5 @@ export const DEFAULT_PLUGIN_SETTINGS: KanbanPluginSettings = {
   showCardCount: true,
   compactMode: false,
   showColumnColors: true,
+  showDeleteConfirmDialog: true,
 };

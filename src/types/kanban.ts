@@ -111,3 +111,30 @@ export type CardSize = "small" | "medium" | "large";
  * ソート順
  */
 export type SortOrder = "created" | "updated" | "title" | "custom";
+
+/**
+ * プロパティタイプ
+ */
+export enum PropertyType {
+  Text = "text",
+  Number = "number",
+  Checkbox = "checkbox",
+  Date = "date",
+  DateTime = "datetime",
+  Tags = "tags",
+  List = "list",
+}
+
+/**
+ * プロパティメタデータ
+ */
+export interface PropertyMetadata {
+  /** プロパティ名 */
+  name: string;
+
+  /** プロパティタイプ */
+  type: PropertyType;
+
+  /** 利用可能な選択肢（Tags/List の場合） */
+  options?: string[];
+}
