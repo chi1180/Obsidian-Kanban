@@ -9,6 +9,7 @@ import { KanbanBasesView } from "./views/kanbanBasesView";
 import { KanbanSettingTab } from "./settings/settingsTab";
 import { DEFAULT_PLUGIN_SETTINGS } from "./settings/defaultSettings";
 import type { KanbanPluginSettings } from "./types/settings";
+import "./styles/index.scss";
 
 // Kanban View の識別子
 const KANBAN_VIEW_TYPE = "kanban-board-view";
