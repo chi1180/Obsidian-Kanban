@@ -16,4 +16,8 @@
     - [x] Dropdown selector <Tags>
     - [x] Text area <Text>
 
+## Improvements
+
+- [ ] Add [edit] button to each card to quickly edit its file properties
+
 now ! i can work on new features !!!

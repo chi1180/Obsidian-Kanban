@@ -17,6 +17,7 @@ import { KanbanBoardData } from "../types/kanban";
 import { CardSize } from "../types/settings";
 import { Column } from "./Column";
 import { UndoToast } from "./UndoToast";
+import { collectAllProperties } from "../utils/propertyUtils";
 import { setIcon } from "obsidian";
 
 interface KanbanBoardProps {
@@ -106,6 +107,9 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 
   // 非表示にするカードのIDセット
   const [hiddenCardIds, setHiddenCardIds] = useState<Set<string>>(new Set());
+
+  // 全プロパティのメタデータを収集
+  const allProperties = collectAllProperties(boardData);
 
   // カード削除（遅延実行）
   const handleCardDelete = (file: TFile) => {
@@ -261,6 +265,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                   availableTags={boardData.availableTags}
                   showDeleteConfirmDialog={showDeleteConfirmDialog}
                   onUpdateSettings={handleUpdateSettings}
+                  allProperties={allProperties}
                 />
               </div>
             );
@@ -310,6 +315,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
                         hiddenCardIds={hiddenCardIds}
                         showDeleteConfirmDialog={showDeleteConfirmDialog}
                         onUpdateSettings={handleUpdateSettings}
+                        allProperties={allProperties}
                       />
                     </div>
                   )}

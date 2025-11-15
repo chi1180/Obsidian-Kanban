@@ -16,6 +16,7 @@ import { Card } from "./Card";
 import { NewCardButton } from "./NewCardButton";
 import { TFile } from "obsidian";
 import { GripVertical } from "lucide-react";
+import { PropertyMetadata } from "../utils/propertyUtils";
 
 interface ColumnProps {
   /** カラムのデータ */
@@ -68,6 +69,9 @@ interface ColumnProps {
 
   /** 非表示にするカードのIDセット */
   hiddenCardIds?: Set<string>;
+  
+  /** すべてのプロパティのメタデータ */
+  allProperties?: PropertyMetadata[];
 }
 
 /**
@@ -91,6 +95,7 @@ export const Column: React.FC<ColumnProps> = ({
   dragHandleProps,
   availableTags,
   hiddenCardIds,
+  allProperties,
 }) => {
   // 一時的な新規カードの管理
   const [tempNewCard, setTempNewCard] = useState<KanbanCard | null>(null);
@@ -209,6 +214,7 @@ export const Column: React.FC<ColumnProps> = ({
                 availableTags={availableTags}
                 showDeleteConfirmDialog={showDeleteConfirmDialog}
                 onUpdateSettings={onUpdateSettings}
+                allProperties={allProperties}
               />
             </div>
           );
@@ -307,6 +313,7 @@ export const Column: React.FC<ColumnProps> = ({
                         availableTags={availableTags}
                         showDeleteConfirmDialog={showDeleteConfirmDialog}
                         onUpdateSettings={onUpdateSettings}
+                        allProperties={allProperties}
                       />
                     </div>
                   )}
