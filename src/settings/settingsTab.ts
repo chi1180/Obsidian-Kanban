@@ -127,5 +127,33 @@ export class KanbanSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
+
+    // カラムごとに色を表示するか
+    new Setting(containerEl)
+      .setName("Show column colors")
+      .setDesc("Display colors for each column (Notion-style)")
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showColumnColors)
+          .onChange(async (value) => {
+            this.plugin.settings.showColumnColors = value;
+            await this.plugin.saveSettings();
+          }),
+      );
+
+    // カード削除時に確認ダイアログを表示するか
+    new Setting(containerEl)
+      .setName("Show confirmation dialog when deleting cards")
+      .setDesc(
+        "Display a confirmation dialog before deleting a card. You can also disable this from the delete dialog itself.",
+      )
+      .addToggle((toggle) =>
+        toggle
+          .setValue(this.plugin.settings.showDeleteConfirmDialog)
+          .onChange(async (value) => {
+            this.plugin.settings.showDeleteConfirmDialog = value;
+            await this.plugin.saveSettings();
+          }),
+      );
   }
 }

@@ -28,6 +28,12 @@ export interface KanbanCard {
 
   /** カード内での並び順（将来の拡張用） */
   order?: number;
+
+  /** 新規作成されたばかりのカードかどうか（編集モードを自動で開くため） */
+  isNew?: boolean;
+
+  /** カードの挿入位置（新規作成時のみ使用） */
+  insertPosition?: "top" | "bottom";
 }
 
 /**
@@ -48,6 +54,13 @@ export interface KanbanColumn {
 
   /** カラムの並び順 */
   order: number;
+
+  /** カラムの色情報（オプション） */
+  color?: {
+    background: string;
+    text: string;
+    dot: string;
+  };
 }
 
 /**
@@ -59,6 +72,12 @@ export interface KanbanBoardData {
 
   /** カラムプロパティ名（どのプロパティでグループ化するか） */
   columnProperty: string;
+
+  /** カラムの並び順（カラムIDの配列） */
+  columnOrder?: string[];
+
+  /** プロパティごとの利用可能なタグ値（プロパティ名 → タグ値の配列） */
+  availableTags?: Record<string, string[]>;
 }
 
 /**
@@ -98,3 +117,30 @@ export type CardSize = "small" | "medium" | "large";
  * ソート順
  */
 export type SortOrder = "created" | "updated" | "title" | "custom";
+
+/**
+ * プロパティタイプ
+ */
+export enum PropertyType {
+  Text = "text",
+  Number = "number",
+  Checkbox = "checkbox",
+  Date = "date",
+  DateTime = "datetime",
+  Tags = "tags",
+  List = "list",
+}
+
+/**
+ * プロパティメタデータ
+ */
+export interface PropertyMetadata {
+  /** プロパティ名 */
+  name: string;
+
+  /** プロパティタイプ */
+  type: PropertyType;
+
+  /** 利用可能な選択肢（Tags/List の場合） */
+  options?: string[];
+}

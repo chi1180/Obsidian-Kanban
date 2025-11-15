@@ -42,6 +42,30 @@ export interface BasesData {
 }
 
 /**
+ * フィルター条件
+ */
+export interface FilterCondition {
+  /** フィルタータイプ */
+  type?: string;
+  /** フィールド名 */
+  field?: string;
+  /** 演算子 */
+  operator?: string;
+  /** 値 */
+  value?: any;
+  /** フォルダパス */
+  folder?: string;
+  /** パス */
+  path?: string;
+  /** ネストされた条件 */
+  conditions?: FilterCondition | FilterCondition[];
+  /** WHERE句 */
+  where?: FilterCondition | FilterCondition[];
+  /** 条件節 */
+  clauses?: FilterCondition | FilterCondition[];
+}
+
+/**
  * クエリコントローラー
  * データの取得や更新を管理
  */
@@ -50,6 +74,14 @@ export interface QueryController {
   getData(): BasesData | null;
   /** データが更新されたときのコールバックを登録 */
   onDataUpdated(callback: () => void): void;
+  /** 現在のビューのフィルター情報を取得（存在する場合） */
+  getFilter?(): FilterCondition | FilterCondition[] | null;
+  /** グローバルフィルター情報を取得（存在する場合） */
+  getGlobalFilter?(): FilterCondition | FilterCondition[] | null;
+  /** フィルター情報（プロパティとして存在する場合） */
+  filter?: FilterCondition | FilterCondition[];
+  /** グローバルフィルター情報（プロパティとして存在する場合） */
+  globalFilter?: FilterCondition | FilterCondition[];
 }
 
 /**
@@ -62,6 +94,8 @@ export interface BasesViewConfig {
   set(key: string, value: unknown): void;
   /** 設定値を削除（オプショナル） */
   delete?(key: string): void;
+  /** 表示するプロパティの順序を取得 */
+  getOrder(): string[];
 }
 
 /**

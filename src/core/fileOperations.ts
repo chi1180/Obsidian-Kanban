@@ -27,8 +27,8 @@ export class FileOperations {
     // ファイル名をサニタイズ（不正な文字を除去）
     const sanitizedTitle = this.sanitizeFileName(title);
 
-    // ファイルパスを生成
-    const fileName = `${sanitizedTitle}.md`;
+    // 重複を避けてファイル名を生成（Untitled, Untitled 2, Untitled 3...）
+    const fileName = await this.getUniqueFileName(sanitizedTitle, folderPath);
     const filePath = normalizePath(`${folderPath}/${fileName}`);
 
     // フロントマターを構築
@@ -89,6 +89,48 @@ export class FileOperations {
         `Failed to delete file: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
+  }
+
+  /**
+   * 重複を避けてユニークなファイル名を生成
+   * 同じ名前のファイルが存在する場合は連番を付ける（例: Untitled, Untitled 2, Untitled 3）
+   *
+   * @param baseName - ベースとなるファイル名（拡張子なし）
+   * @param folderPath - フォルダパス
+   * @returns ユニークなファイル名（拡張子付き）
+   */
+  private async getUniqueFileName(
+    baseName: string,
+    folderPath: string,
+  ): Promise<string> {
+    const folder = this.app.vault.getAbstractFileByPath(
+      normalizePath(folderPath),
+    );
+    if (!(folder instanceof TFolder)) {
+      // フォルダが存在しない場合は、そのまま返す
+      return `${baseName}.md`;
+    }
+
+    // 同じ名前のファイルが存在するかチェック
+    const existingFile = folder.children.find(
+      (child) => child.name === `${baseName}.md`,
+    );
+
+    if (!existingFile) {
+      // 重複がなければそのまま返す
+      return `${baseName}.md`;
+    }
+
+    // 重複がある場合は連番を付ける
+    let index = 2;
+    let newFileName = `${baseName} ${index}.md`;
+
+    while (folder.children.find((child) => child.name === newFileName)) {
+      index++;
+      newFileName = `${baseName} ${index}.md`;
+    }
+
+    return newFileName;
   }
 
   /**
