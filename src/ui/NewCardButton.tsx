@@ -16,7 +16,7 @@ interface NewCardButtonProps {
   columnTitle: string;
 
   /** 新規カード作成時のコールバック */
-  onCreateCard: (columnId: string, title: string) => void;
+  onCreateCard: () => void;
 
   /** キャンセル時のコールバック（外部制御時のみ） */
   onCancel?: () => void;
@@ -32,18 +32,13 @@ interface NewCardButtonProps {
  * NewCardButton コンポーネント
  */
 export const NewCardButton: React.FC<NewCardButtonProps> = ({
-  columnId,
+  columnId: _columnId,
   columnTitle: _columnTitle,
   onCreateCard,
   onCancel: _onCancel,
   compact = false,
   isCreating: _isCreating,
 }) => {
-  // Notion風に即座に「Untitled」カードを作成
-  const handleCreateUntitled = () => {
-    onCreateCard(columnId, "Untitled");
-  };
-
   // デフォルトバリアント（フルサイズボタン）
   return (
     <button
@@ -51,7 +46,7 @@ export const NewCardButton: React.FC<NewCardButtonProps> = ({
       className={`kanban-new-card-trigger ${
         compact ? "kanban-new-card-trigger--compact" : ""
       }`}
-      onClick={handleCreateUntitled}
+      onClick={onCreateCard}
     >
       <Plus size={16} />
       <span>New Card</span>

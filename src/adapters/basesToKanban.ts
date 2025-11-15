@@ -24,6 +24,8 @@ interface BasesEntry {
  * @param columnProperty - カラムプロパティ名（グループ化に使用）
  * @param savedColumnOrder - 保存されたカラム順序（オプション）
  * @param showColumnColors - カラムに色を付けるか（オプション）
+ * @param newlyCreatedCardPath - 新規作成されたカードのパス（編集モードを自動で開くため）
+ * @param newlyCreatedCardPosition - 新規作成されたカードの挿入位置（'top' | 'bottom'）
  * @returns Kanban ボードデータ
  */
 export function basesToKanbanData(
@@ -31,9 +33,19 @@ export function basesToKanbanData(
   columnProperty: string,
   savedColumnOrder?: string[],
   showColumnColors?: boolean,
+  newlyCreatedCardPath?: string | null,
+  newlyCreatedCardPosition?: "top" | "bottom" | null,
 ): KanbanBoardData {
   // エントリーをカードに変換
-  const cards = entries.map((entry) => entryToCard(entry, columnProperty));
+  const cards = entries.map((entry) => {
+    const card = entryToCard(entry, columnProperty);
+    // 新規作成されたカードには isNew フラグと挿入位置を設定
+    if (newlyCreatedCardPath && card.id === newlyCreatedCardPath) {
+      card.isNew = true;
+      card.insertPosition = newlyCreatedCardPosition || "top";
+    }
+    return card;
+  });
 
   // カラムごとにカードをグループ化
   const columnsMap = new Map<string, KanbanCard[]>();

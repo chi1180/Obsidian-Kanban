@@ -4,13 +4,13 @@
  * カンバンボードの1つのカラム（列）を表示します。
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React from "react";
 import {
   Droppable,
   Draggable,
   DraggableProvidedDragHandleProps,
 } from "@hello-pangea/dnd";
-import { KanbanColumn, KanbanCard } from "../types/kanban";
+import { KanbanColumn } from "../types/kanban";
 import { CardSize } from "../types/settings";
 import { Card } from "./Card";
 import { NewCardButton } from "./NewCardButton";
@@ -47,7 +47,11 @@ interface ColumnProps {
   onCardTitleEdit?: (file: TFile, newTitle: string) => void;
 
   /** 新規カード作成時のコールバック */
-  onCreateCard?: (columnId: string, title: string) => void;
+  onCreateCard?: (
+    columnId: string,
+    title: string,
+    insertPosition?: "top" | "bottom",
+  ) => void;
 
   /** プロパティ編集時のコールバック */
   onPropertyEdit?: (file: TFile, property: string, newValue: any) => void;
@@ -69,7 +73,7 @@ interface ColumnProps {
 
   /** 非表示にするカードのIDセット */
   hiddenCardIds?: Set<string>;
-  
+
   /** すべてのプロパティのメタデータ */
   allProperties?: PropertyMetadata[];
 }
@@ -97,17 +101,6 @@ export const Column: React.FC<ColumnProps> = ({
   hiddenCardIds,
   allProperties,
 }) => {
-  // 一時的な新規カードの管理
-  const [tempNewCard, setTempNewCard] = useState<KanbanCard | null>(null);
-  const cardInputRef = useRef<HTMLInputElement>(null);
-
-  // 新規カード作成時にフォーカスを当てる
-  useEffect(() => {
-    if (tempNewCard && cardInputRef.current) {
-      cardInputRef.current.focus();
-    }
-  }, [tempNewCard]);
-
   // カラムの色を CSS 変数として設定
   const columnStyle = column.color
     ? ({
@@ -119,31 +112,53 @@ export const Column: React.FC<ColumnProps> = ({
 
   // カラム右上の「+」ボタンクリック時の処理
   const handleHeaderAddClick = () => {
-    // 一時的な新規カードを作成
-    const newCard: KanbanCard = {
-      id: `temp-${Date.now()}`,
-      title: "Untitled",
-      properties: {},
-      file: null as any, // 一時的にnullを設定
-      columnId: column.id,
-    };
-    setTempNewCard(newCard);
-  };
-
-  // 新規カードのフォーカスが切れた時の処理
-  const handleTempCardBlur = () => {
-    // フォーカスが切れたら、既存のカード作成処理を実行
-    if (tempNewCard && onCreateCard) {
-      onCreateCard(column.id, tempNewCard.title);
+    // 直接カード作成処理を実行（上部に追加）
+    if (onCreateCard) {
+      onCreateCard(column.id, "Untitled", "top");
     }
-    // 一時カードをクリア
-    setTempNewCard(null);
   };
 
-  // 表示するカードのリスト（一時カードを先頭に追加）
-  const displayCards = tempNewCard
-    ? [tempNewCard, ...column.cards]
-    : column.cards;
+  // カラム下部の「+ New Card」ボタンクリック時の処理
+  const handleBottomAddClick = () => {
+    // 直接カード作成処理を実行（下部に追加）
+    if (onCreateCard) {
+      onCreateCard(column.id, "Untitled", "bottom");
+    }
+  };
+
+  // 新規作成カード（isNew）の位置を制御
+  const sortedCards = [...column.cards].sort((a, b) => {
+    // insertPosition が 'top' のカードを先頭に
+    if (
+      a.isNew &&
+      a.insertPosition === "top" &&
+      (!b.isNew || b.insertPosition !== "top")
+    )
+      return -1;
+    if (
+      b.isNew &&
+      b.insertPosition === "top" &&
+      (!a.isNew || a.insertPosition !== "top")
+    )
+      return 1;
+
+    // insertPosition が 'bottom' のカードを末尾に
+    if (
+      a.isNew &&
+      a.insertPosition === "bottom" &&
+      (!b.isNew || b.insertPosition !== "bottom")
+    )
+      return 1;
+    if (
+      b.isNew &&
+      b.insertPosition === "bottom" &&
+      (!a.isNew || a.insertPosition !== "bottom")
+    )
+      return -1;
+
+    // それ以外は元の順序を維持
+    return 0;
+  });
 
   return (
     <div
@@ -194,7 +209,7 @@ export const Column: React.FC<ColumnProps> = ({
         droppableId={column.id}
         isDropDisabled={!enableDragAndDrop}
         renderClone={(provided, _snapshot, rubric) => {
-          const card = column.cards[rubric.source.index];
+          const card = sortedCards[rubric.source.index];
           return (
             <div
               ref={provided.innerRef}
@@ -230,51 +245,9 @@ export const Column: React.FC<ColumnProps> = ({
                 : ""
             }`}
           >
-            {displayCards.map((card, index) => {
+            {sortedCards.map((card, index) => {
               // 非表示にするカードはスキップ
               const isHidden = hiddenCardIds?.has(card.id);
-
-              // 一時カードかどうかを判定
-              const isTempCard = card.id === tempNewCard?.id;
-
-              // 一時カードの場合はドラッグ不可で、特別な処理を適用
-              if (isTempCard) {
-                return (
-                  <div
-                    key={card.id}
-                    className="kanban-column__card-wrapper kanban-column__card-wrapper--temp"
-                  >
-                    <div className="kanban-card kanban-card--medium kanban-card--editing">
-                      <div className="kanban-card__title">
-                        <input
-                          ref={cardInputRef}
-                          type="text"
-                          className="kanban-card__title-input"
-                          value={card.title}
-                          onChange={(e) => {
-                            if (tempNewCard) {
-                              setTempNewCard({
-                                ...tempNewCard,
-                                title: e.target.value,
-                              });
-                            }
-                          }}
-                          onBlur={handleTempCardBlur}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              handleTempCardBlur();
-                            } else if (e.key === "Escape") {
-                              setTempNewCard(null);
-                            }
-                          }}
-                          placeholder="Enter card title..."
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
 
               return (
                 <Draggable
@@ -327,7 +300,7 @@ export const Column: React.FC<ColumnProps> = ({
               <NewCardButton
                 columnId={column.id}
                 columnTitle={column.title}
-                onCreateCard={onCreateCard}
+                onCreateCard={handleBottomAddClick}
                 compact={compact}
               />
             )}

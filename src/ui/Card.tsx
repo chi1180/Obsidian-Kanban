@@ -9,10 +9,23 @@ import type { TFile } from "obsidian";
 import type { KanbanCard } from "../types/kanban";
 import type { CardSize } from "../types/settings";
 import { PropertyType } from "../types/kanban";
-import { inferPropertyType, formatPropertyValue, PropertyMetadata } from "../utils/propertyUtils";
+import {
+  inferPropertyType,
+  formatPropertyValue,
+  type PropertyMetadata,
+} from "../utils/propertyUtils";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { PropertyEditor } from "./editors/PropertyEditor";
 import { getColumnColorForTheme } from "../utils/colorUtils";
+import {
+  SquareCheckBig,
+  Calendar,
+  Clock,
+  Tags,
+  List,
+  Binary,
+  AlignLeft,
+} from "lucide-react";
 
 interface CardProps {
   /** カードのデータ */
@@ -59,8 +72,8 @@ interface CardProps {
   showDeleteConfirmDialog?: boolean;
 
   /** 設定更新時のコールバック */
-  onUpdateSettings?: (key: string, value: any) => void;
-  
+  onUpdateSettings?: (key: string, value: unknown) => void;
+
   /** すべてのプロパティのメタデータ */
   allProperties?: PropertyMetadata[];
 }
@@ -92,6 +105,34 @@ export const Card: React.FC<CardProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // 新規作成されたカードは自動的に編集モードを開く
+  useEffect(() => {
+    if (card.isNew && !isEditMode) {
+      setIsEditMode(true);
+      // タイトル編集モードも開く
+      setIsEditingTitle(true);
+    }
+  }, [card.isNew, isEditMode]);
+
+  // 編集モード時にタイトル入力欄にフォーカスして選択
+  useEffect(() => {
+    if (isEditMode && isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+
+      // カードを表示領域にスクロール（bottom 挿入の場合）
+      if (card.insertPosition === "bottom" && cardRef.current) {
+        setTimeout(() => {
+          cardRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }, 100);
+      }
+    }
+  }, [isEditMode, isEditingTitle, card.insertPosition]);
 
   // 編集モード時に外側クリックで閉じる
   useEffect(() => {
@@ -100,6 +141,10 @@ export const Card: React.FC<CardProps> = ({
     const handleClickOutside = (e: MouseEvent) => {
       if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
         setIsEditMode(false);
+        // 新規カードの場合は isNew フラグをクリア
+        if (card.isNew && onPropertyEdit) {
+          onPropertyEdit(card.file, "_clearIsNew", true);
+        }
       }
     };
 
@@ -107,7 +152,7 @@ export const Card: React.FC<CardProps> = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isEditMode]);
+  }, [isEditMode, card.isNew, onPropertyEdit, card.file]);
 
   // タイトル編集を開始
   const handleTitleClick = (e: React.MouseEvent) => {
@@ -126,6 +171,14 @@ export const Card: React.FC<CardProps> = ({
     } else {
       setEditedTitle(card.title);
     }
+
+    // 新規カードの場合は編集モードを閉じて isNew フラグをクリア
+    if (card.isNew) {
+      setIsEditMode(false);
+      if (onPropertyEdit) {
+        onPropertyEdit(card.file, "_clearIsNew", true);
+      }
+    }
   };
 
   // Enter キーで確定、Escape キーでキャンセル
@@ -136,12 +189,26 @@ export const Card: React.FC<CardProps> = ({
     } else if (e.key === "Escape") {
       setIsEditingTitle(false);
       setEditedTitle(card.title);
+
+      // 新規カードの場合は編集モードを閉じて isNew フラグをクリア
+      if (card.isNew) {
+        setIsEditMode(false);
+        if (onPropertyEdit) {
+          onPropertyEdit(card.file, "_clearIsNew", true);
+        }
+      }
     }
   };
 
   // カードクリック
   const handleCardClick = () => {
-    if (onClick && !isEditingTitle && !editingProperty && !showDeleteModal && !isEditMode) {
+    if (
+      onClick &&
+      !isEditingTitle &&
+      !editingProperty &&
+      !showDeleteModal &&
+      !isEditMode
+    ) {
       onClick(card.file);
     }
   };
@@ -157,6 +224,11 @@ export const Card: React.FC<CardProps> = ({
   const handleDoneClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     setIsEditMode(false);
+    // 新規作成フラグをクリア
+    if (card.isNew && onPropertyEdit) {
+      // isNew フラグを削除するためにプロパティを更新
+      onPropertyEdit(card.file, "_clearIsNew", true);
+    }
   };
 
   // プロパティ編集を開始
@@ -243,7 +315,6 @@ export const Card: React.FC<CardProps> = ({
     }
   };
 
-
   // 編集モードで表示するプロパティリストを生成
   const editModeProperties = (): PropertyMetadata[] => {
     // カードに設定済みのプロパティと未設定のプロパティを分ける
@@ -289,23 +360,27 @@ export const Card: React.FC<CardProps> = ({
       <div className="kanban-card__title">
         {isEditingTitle ? (
           <input
+            ref={titleInputRef}
             type="text"
             className="kanban-card__title-input"
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
             onBlur={handleTitleBlur}
-            onKeyDown={handleTitleKeyDown}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              handleTitleKeyDown(e);
+            }}
             onClick={(e) => e.stopPropagation()}
-            autoFocus
           />
         ) : (
-          <div
+          <button
+            type="button"
             className="kanban-card__title-text"
             onClick={handleTitleClick}
             title={card.title}
           >
             {card.title}
-          </div>
+          </button>
         )}
       </div>
 
@@ -334,6 +409,7 @@ export const Card: React.FC<CardProps> = ({
               strokeLinecap="round"
               strokeLinejoin="round"
             >
+              <title>Edit</title>
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
             </svg>
@@ -362,6 +438,7 @@ export const Card: React.FC<CardProps> = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
+                <title>Delete</title>
                 <path d="M3 6h18" />
                 <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
                 <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
@@ -386,118 +463,145 @@ export const Card: React.FC<CardProps> = ({
         <div className="kanban-card__edit-mode">
           {editModeProperties().map((prop) => {
             const value = card.properties[prop.name];
-            const hasValue = value !== undefined && value !== null && value !== "";
+            const hasValue =
+              value !== undefined && value !== null && value !== "";
             const isEditing = editingProperty === prop.name;
+
+            // カラムプロパティかどうかを判定（tags用）
+            const isColumnProperty = columnProperty === prop.name;
 
             return (
               <div key={prop.name} className="kanban-card__edit-property">
-                {isEditing ? (
-                  <PropertyEditor
-                    propertyName={prop.name}
-                    value={value}
-                    onChange={(newValue) => handlePropertyChange(prop.name, newValue)}
-                    onClose={handlePropertyClose}
-                    availableOptions={prop.options}
-                    forceType={prop.type}
-                  />
-                ) : (
-                  <div
-                    className={`kanban-card__edit-property-item ${!hasValue ? "kanban-card__edit-property-item--empty" : ""}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
+                <button
+                  type="button"
+                  className={`kanban-card__edit-property-item ${!hasValue && !isEditing ? "kanban-card__edit-property-item--empty" : ""}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // チェックボックス以外のみクリックで編集モードに
+                    if (prop.type !== PropertyType.Checkbox && !isEditing) {
                       handlePropertyClick(prop.name);
-                    }}
-                  >
-                    <div className="kanban-card__edit-property-icon">
-                      {prop.type === PropertyType.Checkbox && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                        </svg>
-                      )}
-                      {prop.type === PropertyType.Date && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <rect x="3" y="4" width="18" height="18" rx="2" />
-                          <line x1="16" y1="2" x2="16" y2="6" />
-                          <line x1="8" y1="2" x2="8" y2="6" />
-                          <line x1="3" y1="10" x2="21" y2="10" />
-                        </svg>
-                      )}
-                      {prop.type === PropertyType.DateTime && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="10" />
-                          <polyline points="12 6 12 12 16 14" />
-                        </svg>
-                      )}
-                      {prop.type === PropertyType.Tags && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                          <line x1="7" y1="7" x2="7.01" y2="7" />
-                        </svg>
-                      )}
-                      {prop.type === PropertyType.List && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="8" y1="6" x2="21" y2="6" />
-                          <line x1="8" y1="12" x2="21" y2="12" />
-                          <line x1="8" y1="18" x2="21" y2="18" />
-                          <line x1="3" y1="6" x2="3.01" y2="6" />
-                          <line x1="3" y1="12" x2="3.01" y2="12" />
-                          <line x1="3" y1="18" x2="3.01" y2="18" />
-                        </svg>
-                      )}
-                      {prop.type === PropertyType.Number && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="4" y1="9" x2="20" y2="9" />
-                          <line x1="4" y1="15" x2="20" y2="15" />
-                          <line x1="10" y1="3" x2="8" y2="21" />
-                          <line x1="16" y1="3" x2="14" y2="21" />
-                        </svg>
-                      )}
-                      {prop.type === PropertyType.Text && (
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="4 7 4 4 20 4 20 7" />
-                          <line x1="9" y1="20" x2="15" y2="20" />
-                          <line x1="12" y1="4" x2="12" y2="20" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="kanban-card__edit-property-content">
-                      <div className="kanban-card__edit-property-name">{prop.name}</div>
-                      {hasValue ? (
-                        <div className="kanban-card__edit-property-value">
-                          {prop.type === PropertyType.List && Array.isArray(value) ? (
-                            <div className="kanban-card__property-list">
-                              {value.map((item, index) => {
-                                const itemColor = getColumnColorForTheme(String(item));
-                                return (
-                                  <span
-                                    key={index}
-                                    className="kanban-card__property-list-item"
-                                    style={{
-                                      backgroundColor: itemColor.background,
-                                      color: itemColor.text,
-                                    }}
-                                  >
-                                    <span
-                                      className="kanban-card__property-list-dot"
-                                      style={{ backgroundColor: itemColor.dot }}
-                                    />
-                                    {String(item)}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            formatPropertyValue(value, prop.type)
-                          )}
-                        </div>
-                      ) : (
-                        <div className="kanban-card__edit-property-placeholder">
-                          Add {prop.name}
-                        </div>
-                      )}
-                    </div>
+                    }
+                  }}
+                >
+                  <div className="kanban-card__edit-property-icon">
+                    {prop.type === PropertyType.Checkbox && (
+                      <SquareCheckBig size={16} />
+                    )}
+                    {prop.type === PropertyType.Date && <Calendar size={16} />}
+                    {prop.type === PropertyType.DateTime && <Clock size={16} />}
+                    {prop.type === PropertyType.Tags && <Tags size={16} />}
+                    {prop.type === PropertyType.List && <List size={16} />}
+                    {prop.type === PropertyType.Number && <Binary size={16} />}
+                    {prop.type === PropertyType.Text && <AlignLeft size={16} />}
                   </div>
-                )}
+                  <div className="kanban-card__edit-property-content">
+                    {prop.type === PropertyType.Checkbox ? (
+                      // チェックボックスは view-mode と同じレンダリング
+                      <div className="kanban-card__property-checkbox">
+                        <label className="kanban-card__property-checkbox-label">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(value)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handlePropertyChange(prop.name, e.target.checked);
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <span className="kanban-card__property-name">
+                            {prop.name}
+                          </span>
+                        </label>
+                      </div>
+                    ) : prop.type === PropertyType.Tags ? (
+                      // Tags は view-mode と同じレンダリング
+                      hasValue ? (
+                        <button
+                          type="button"
+                          className={
+                            isColumnProperty
+                              ? "kanban-card__property-value kanban-card__property-value--column"
+                              : "kanban-card__property-value"
+                          }
+                          style={
+                            isColumnProperty && columnColor
+                              ? ({
+                                  "--property-bg-color": columnColor.background,
+                                  "--property-text-color": columnColor.text,
+                                  "--property-dot-color": columnColor.dot,
+                                } as React.CSSProperties)
+                              : undefined
+                          }
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePropertyClick(prop.name);
+                          }}
+                        >
+                          {isColumnProperty && columnColor && (
+                            <span className="kanban-card__property-dot" />
+                          )}
+                          {formatPropertyValue(value, prop.type)}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="kanban-card__edit-property-placeholder"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePropertyClick(prop.name);
+                          }}
+                        >
+                          Add {prop.name}
+                        </button>
+                      )
+                    ) : isEditing ? (
+                      // 編集中は他のプロパティもエディタを表示
+                      <PropertyEditor
+                        propertyName={prop.name}
+                        value={value}
+                        onChange={(newValue) =>
+                          handlePropertyChange(prop.name, newValue)
+                        }
+                        onClose={handlePropertyClose}
+                        availableOptions={prop.options}
+                        forceType={prop.type}
+                      />
+                    ) : hasValue ? (
+                      // 値がある場合は表示
+                      <div className="kanban-card__edit-property-value">
+                        {prop.type === PropertyType.List &&
+                        Array.isArray(value) ? (
+                          <div className="kanban-card__property-list">
+                            {value.map((item) => {
+                              const itemColor = getColumnColorForTheme(
+                                String(item),
+                              );
+                              return (
+                                <span
+                                  key={`${prop.name}-${String(item)}`}
+                                  className="kanban-card__property-list-item"
+                                  style={{
+                                    backgroundColor: itemColor.background,
+                                    color: itemColor.text,
+                                  }}
+                                >
+                                  {String(item)}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          formatPropertyValue(value, prop.type)
+                        )}
+                      </div>
+                    ) : (
+                      // 値がない場合はプレースホルダー
+                      <div className="kanban-card__edit-property-placeholder">
+                        Add {prop.name}
+                      </div>
+                    )}
+                  </div>
+                </button>
               </div>
             );
           })}
@@ -548,13 +652,14 @@ export const Card: React.FC<CardProps> = ({
             if (propertyType === PropertyType.Checkbox && !isEditingProperty) {
               return (
                 <div key={propName} className="kanban-card__property">
-                  <div
+                  <button
+                    type="button"
                     className="kanban-card__property-checkbox"
                     onClick={(e) => {
                       e.stopPropagation();
                       handlePropertyClick(propName);
                     }}
-                    title={propName}
+                    aria-label={propName}
                   >
                     <label className="kanban-card__property-checkbox-label">
                       <input
@@ -570,7 +675,7 @@ export const Card: React.FC<CardProps> = ({
                         {propName}
                       </span>
                     </label>
-                  </div>
+                  </button>
                 </div>
               );
             }
@@ -588,24 +693,26 @@ export const Card: React.FC<CardProps> = ({
                     availableOptions={_availableTags?.[propName] || []}
                   />
                 ) : (
-                  <>
+                  <button
+                    type="button"
+                    className={`kanban-card__property-value-button ${propertyClassName}`}
+                    style={propertyStyle}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handlePropertyClick(propName);
+                    }}
+                    aria-label={`Edit ${propName}`}
+                  >
                     {propertyType === PropertyType.List &&
                     Array.isArray(value) ? (
-                      <div
-                        className="kanban-card__property-list"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePropertyClick(propName);
-                        }}
-                        title={propName}
-                      >
-                        {value.map((item, index) => {
+                      <div className="kanban-card__property-list">
+                        {value.map((item) => {
                           const itemColor = getColumnColorForTheme(
                             String(item),
                           );
                           return (
                             <span
-                              key={index}
+                              key={`${propName}-list-${String(item)}`}
                               className="kanban-card__property-list-item"
                               style={{
                                 backgroundColor: itemColor.background,
@@ -622,29 +729,20 @@ export const Card: React.FC<CardProps> = ({
                         })}
                       </div>
                     ) : (
-                      <div
-                        className={propertyClassName}
-                        style={propertyStyle}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePropertyClick(propName);
-                        }}
-                        title={propName}
-                      >
+                      <>
                         {isColumnProperty && columnColor && (
                           <span className="kanban-card__property-dot" />
                         )}
                         {formatPropertyValue(value, propertyType)}
-                      </div>
+                      </>
                     )}
-                  </>
+                  </button>
                 )}
               </div>
             );
           })}
         </div>
       )}
-      )
     </div>
   );
 };

@@ -27,6 +27,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
   private plugin: ObsidianBetterKanbanPlugin;
   private containerEl: HTMLElement;
   private queryController: any;
+  private newlyCreatedCardPath: string | null = null;
+  private newlyCreatedCardPosition: "top" | "bottom" | null = null;
 
   hoverPopover: HoverPopover | null = null;
 
@@ -109,6 +111,8 @@ export class KanbanBasesView extends BasesView implements HoverParent {
         columnProperty,
         savedColumnOrder,
         showColumnColors,
+        this.newlyCreatedCardPath,
+        this.newlyCreatedCardPosition,
       );
 
       // React コンポーネントをレンダリング
@@ -402,6 +406,7 @@ export class KanbanBasesView extends BasesView implements HoverParent {
   private async handleCreateCard(
     columnId: string,
     title: string,
+    insertPosition?: "top" | "bottom",
   ): Promise<void> {
     try {
       const folderPath = this.getNewCardFolderPath();
@@ -411,7 +416,7 @@ export class KanbanBasesView extends BasesView implements HoverParent {
           ? columnPropertyValue
           : "status";
 
-      await this.cardManager.createCard(
+      const newFile = await this.cardManager.createCard(
         {
           title,
           columnProperty,
@@ -420,6 +425,10 @@ export class KanbanBasesView extends BasesView implements HoverParent {
         },
         folderPath,
       );
+
+      // 新規作成されたカードのパスと位置を保存（編集モードを自動で開くため）
+      this.newlyCreatedCardPath = newFile.path;
+      this.newlyCreatedCardPosition = insertPosition || "top";
     } catch {
       // エラーハンドリング（必要に応じて）
     }
@@ -434,6 +443,13 @@ export class KanbanBasesView extends BasesView implements HoverParent {
     newValue: unknown,
   ): Promise<void> {
     try {
+      // 新規作成フラグをクリアする特殊なプロパティ
+      if (property === "_clearIsNew") {
+        this.newlyCreatedCardPath = null;
+        this.newlyCreatedCardPosition = null;
+        return;
+      }
+
       // プロパティを更新
       await this.plugin.app.fileManager.processFrontMatter(
         file,

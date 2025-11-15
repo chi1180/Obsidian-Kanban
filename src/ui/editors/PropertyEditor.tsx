@@ -68,10 +68,10 @@ export const PropertyEditor: React.FC<PropertyEditorProps> = ({
     onChange(newValue);
   };
 
-  // チェックボックスの変更時（即座に確定）
+  // チェックボックスの変更時（常に表示されるため閉じない）
   const handleCheckboxChange = (checked: boolean) => {
     onChange(checked);
-    onClose();
+    // チェックボックスは常に表示されるため onClose を呼ばない
   };
 
   // タグの変更時（即座に確定）

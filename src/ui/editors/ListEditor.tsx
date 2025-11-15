@@ -88,6 +88,9 @@ export const ListEditor: React.FC<ListEditorProps> = ({
 
   // Enter キーで新しい値を追加
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // イベント伝播を停止（Obsidian のホットキーを防ぐ）
+    e.stopPropagation();
+
     if (e.key === "Enter") {
       e.preventDefault();
       handleAddNewValue();
@@ -112,7 +115,6 @@ export const ListEditor: React.FC<ListEditorProps> = ({
       }}
       role="dialog"
       aria-label={`Edit ${propertyName}`}
-      tabIndex={0}
     >
       {/* ヘッダー */}
       <div className="kanban-list-editor__header">

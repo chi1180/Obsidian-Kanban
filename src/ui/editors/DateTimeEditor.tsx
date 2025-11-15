@@ -77,6 +77,9 @@ export const DateTimeEditor: React.FC<DateTimeEditorProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // イベント伝播を停止（Obsidian のホットキーを防ぐ）
+    e.stopPropagation();
+
     if (e.key === "Enter") {
       e.preventDefault();
       onChange(editValue);

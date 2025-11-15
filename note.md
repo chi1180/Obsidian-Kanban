@@ -18,6 +18,6 @@
 
 ## Improvements
 
-- [ ] Add [edit] button to each card to quickly edit its file properties
+- [x] Add [edit] button to each card to quickly edit its file properties
 
 now ! i can work on new features !!!

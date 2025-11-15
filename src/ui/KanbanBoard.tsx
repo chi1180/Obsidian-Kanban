@@ -52,7 +52,11 @@ interface KanbanBoardProps {
   onCardTitleEdit?: (file: TFile, newTitle: string) => void;
 
   /** 新規カード作成時のコールバック */
-  onCreateCard?: (columnId: string, title: string) => void;
+  onCreateCard?: (
+    columnId: string,
+    title: string,
+    insertPosition?: "top" | "bottom",
+  ) => void;
 
   /** プロパティ編集時のコールバック */
   onPropertyEdit?: (file: TFile, property: string, newValue: any) => void;

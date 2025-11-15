@@ -85,7 +85,6 @@ export const TagSelector: React.FC<TagSelectorProps> = ({
       }}
       role="dialog"
       aria-label={`Change ${propertyName}`}
-      tabIndex={0}
     >
       {/* ヘッダー */}
       <div className="kanban-tag-selector__header">

@@ -28,6 +28,12 @@ export interface KanbanCard {
 
   /** カード内での並び順（将来の拡張用） */
   order?: number;
+
+  /** 新規作成されたばかりのカードかどうか（編集モードを自動で開くため） */
+  isNew?: boolean;
+
+  /** カードの挿入位置（新規作成時のみ使用） */
+  insertPosition?: "top" | "bottom";
 }
 
 /**

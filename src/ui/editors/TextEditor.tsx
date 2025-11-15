@@ -62,6 +62,9 @@ export const TextEditor: React.FC<TextEditorProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // イベント伝播を停止（Obsidian のホットキーを防ぐ）
+    e.stopPropagation();
+
     // Shift + Enter で改行、Enter のみで確定
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();

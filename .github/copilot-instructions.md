@@ -11,6 +11,7 @@
 
 - 回答は必ず日本語でしてください。
 - 何か大きい変更を加える場合（既存のコード200行以上書き換える場合。新規に200行以上のコードを追加する場合は問題なし。）、まず何をするのか計画を立てた上で、ユーザーに「このような計画で進めようと思います。」と提案してください。この時、ユーザーから計画の修正を求められた場合は計画を修正して、再提案をしてください。
+- **絶対にコードを勝手にコミットしないでください。** コミットはユーザーが行います。変更が完了したら、変更内容を説明するだけにしてください。
 
 ## アプリ概要
 
@@ -203,6 +204,7 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - 空のボード時のメッセージ表示
 - `DragDropContext` でドラッグ&ドロップを管理
 - `handleDragEnd` でカードとカラムの両方のドラッグを処理（`type` で判定）
+- **全プロパティの収集**: `collectAllProperties(boardData)` で全プロパティのメタデータを取得し、Column に渡す
 - **Undo 機能**: カード削除時に遅延実行し、5秒間 Undo 可能
   - `pendingDelete` 状態で削除待ちのカードを保持
   - `hiddenCardIds` 状態で非表示にするカードIDのセットを管理
@@ -211,6 +213,7 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
   - `UndoToast` コンポーネントを表示
 - **Props**:
   - `columnProperty`: カラムプロパティ名を Column に伝播
+  - `allProperties`: 全プロパティのメタデータを Column に伝播
 
 ##### `src/ui/Column.tsx`
 
@@ -234,6 +237,7 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
   - アクセシビリティラベルと視覚的なツールチップの重複を防止
 - **Props**:
   - `columnProperty`: カラムプロパティ名を Card に伝播
+  - `allProperties`: 全プロパティのメタデータを Card に伝播
 
 ##### `src/ui/Card.tsx`
 
@@ -261,12 +265,26 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
   - `columnProperty` Props で現在のカラムプロパティ名を受け取る
   - プロパティ名が `columnProperty` と一致する場合、`columnColor` を適用
   - CSS 変数でカラムの色を動的に適用（`--property-bg-color`, `--property-text-color`, `--property-dot-color`）
+- **編集モード** ✅ 実装済み
+  - **Edit ボタン**：Delete ボタンの左隣に配置（ホバー時のみ表示、Lucide の Edit アイコン）
+  - **編集モードの起動**：Edit ボタンクリックでカードが編集モードに展開
+  - **全プロパティの表示**：Base 内の全プロパティを表示（設定済み・未設定を問わず）
+    - 設定済みプロパティを上部に表示（現在の値を表示）
+    - 未設定プロパティを下部に表示（「Add {プロパティ名}」プレースホルダー）
+  - **プロパティアイコン**：各プロパティにタイプに応じたアイコンを表示（Checkbox, Date, DateTime, Number, Tags, List, Text）
+  - **インライン編集**：プロパティをクリックすると既存の PropertyEditor でインライン編集
+  - **編集モードの終了**：Done ボタンまたはカード外クリックで通常モードに戻る
+  - **データフロー**：
+    - `allProperties` prop で全プロパティのメタデータ（PropertyMetadata[]）を受け取る
+    - KanbanBoard → Column → Card の順で伝播
+    - `editModeProperties()` 関数で設定済み・未設定プロパティを分類してソート
 - Props:
   - `columnProperty`: カラムプロパティ名（分類用のプロパティ）
   - `showDeleteConfirmDialog`: 削除確認ダイアログを表示するかどうか（デフォルト: true）
   - `onUpdateSettings`: 設定更新時のコールバック（key: string, value: any）
-- **削除ボタン**（ホバー時のみ表示）:
-  - **カード削除（ホバー時のみ表示）** ✅ 実装済み
+  - `allProperties`: すべてのプロパティのメタデータ（PropertyMetadata[]）
+- **編集・削除ボタン**（ホバー時のみ表示）:
+  - **カード削除** ✅ 実装済み
     - カードにホバーすると右上に削除アイコン（ゴミ箱）が表示される
     - クリックで Notion 風のカスタム確認モーダル（DeleteConfirmModal）を表示
     - 確認後、カードが即座に非表示になり、削除を KanbanBoard に通知（遅延実行）
@@ -462,6 +480,16 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 ##### `src/utils/propertyUtils.ts`
 
 - プロパティタイプ推測ユーティリティ
+- **`PropertyMetadata` 型**：プロパティのメタデータ
+  - `name`: プロパティ名
+  - `type`: プロパティタイプ（PropertyType）
+  - `options`: 利用可能な選択肢（Tags/List の場合）
+- **`collectAllProperties()`**: ボードデータから全プロパティのメタデータを収集
+  - 全カードのプロパティをスキャンしてユニークなプロパティ名を抽出
+  - 各プロパティのタイプをサンプル値から推測
+  - Tags/List タイプの場合、すべての利用可能な値を収集して options に格納
+  - プロパティ名でアルファベット順にソート
+  - 戻り値：`PropertyMetadata[]`
 - `inferPropertyType()`: 値とプロパティ名からプロパティタイプを推測
   - boolean → Checkbox
   - number → Number
