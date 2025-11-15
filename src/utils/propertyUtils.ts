@@ -4,7 +4,89 @@
  * プロパティの値からタイプを推測する関数を提供します。
  */
 
-import { PropertyType } from "../types/kanban";
+import { PropertyType, KanbanBoardData } from "../types/kanban";
+
+/**
+ * プロパティのメタデータ
+ */
+export interface PropertyMetadata {
+  /** プロパティ名 */
+  name: string;
+  /** プロパティタイプ */
+  type: PropertyType;
+  /** 利用可能な選択肢（Tags/Listの場合） */
+  options: string[];
+}
+
+/**
+ * ボードデータから全プロパティのメタデータを収集
+ *
+ * @param boardData - ボードデータ
+ * @returns プロパティメタデータの配列
+ */
+export function collectAllProperties(
+  boardData: KanbanBoardData,
+): PropertyMetadata[] {
+  const propertyMap = new Map<string, Set<string>>();
+
+  // 全カードのプロパティを収集
+  for (const column of boardData.columns) {
+    for (const card of column.cards) {
+      for (const [propName, propValue] of Object.entries(card.properties)) {
+        // プロパティ名をマップに追加
+        if (!propertyMap.has(propName)) {
+          propertyMap.set(propName, new Set());
+        }
+
+        // Tags/Listタイプの場合、選択肢を収集
+        if (Array.isArray(propValue)) {
+          propValue.forEach((item) => {
+            if (item !== null && item !== undefined) {
+              propertyMap.get(propName)!.add(String(item));
+            }
+          });
+        } else if (propValue !== null && propValue !== undefined) {
+          // 単一値の場合も選択肢として追加（Tags/Listの可能性）
+          const type = inferPropertyType(propValue, propName);
+          if (type === PropertyType.Tags || type === PropertyType.List) {
+            propertyMap.get(propName)!.add(String(propValue));
+          }
+        }
+      }
+    }
+  }
+
+  // プロパティメタデータの配列を生成
+  const properties: PropertyMetadata[] = [];
+
+  for (const [propName, optionsSet] of propertyMap.entries()) {
+    // サンプル値を取得してタイプを推測
+    let sampleValue: unknown = null;
+    for (const column of boardData.columns) {
+      for (const card of column.cards) {
+        if (card.properties[propName] !== undefined) {
+          sampleValue = card.properties[propName];
+          break;
+        }
+      }
+      if (sampleValue !== null) break;
+    }
+
+    const type = inferPropertyType(sampleValue, propName);
+    const options = Array.from(optionsSet).sort();
+
+    properties.push({
+      name: propName,
+      type,
+      options,
+    });
+  }
+
+  // プロパティ名でソート
+  properties.sort((a, b) => a.name.localeCompare(b.name));
+
+  return properties;
+}
 
 /**
  * プロパティ値からプロパティタイプを推測
