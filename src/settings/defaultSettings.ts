@@ -5,7 +5,7 @@
  * ビュー固有の設定は Base プラグインの config で管理されます。
  */
 
-import { KanbanPluginSettings } from "../types/settings";
+import type { KanbanPluginSettings } from "../types/settings";
 
 /**
  * プラグインのデフォルト設定

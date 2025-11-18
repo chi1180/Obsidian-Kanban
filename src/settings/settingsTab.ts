@@ -4,17 +4,17 @@
  * Obsidian の設定画面にプラグイン設定タブを追加します。
  */
 
-import { PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
-import type ObsidianBetterKanbanPlugin from "../index";
+import { PluginSettingTab, Setting } from "obsidian";
+import type ObsidianKanbanBoardPlugin from "../index";
 
 /**
  * Kanban プラグインの設定タブ
  */
 export class KanbanSettingTab extends PluginSettingTab {
-  plugin: ObsidianBetterKanbanPlugin;
+  plugin: ObsidianKanbanBoardPlugin;
 
-  constructor(app: App, plugin: ObsidianBetterKanbanPlugin) {
+  constructor(app: App, plugin: ObsidianKanbanBoardPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }
@@ -25,7 +25,9 @@ export class KanbanSettingTab extends PluginSettingTab {
     containerEl.empty();
 
     // ヘッダー
-    new Setting(containerEl).setName("Obsidian better kanban").setHeading();
+    new Setting(containerEl)
+      .setName("Kanban board view for bases")
+      .setHeading();
 
     new Setting(containerEl).setDesc(
       "These are default settings. Each board can override these settings individually.",
@@ -52,7 +54,11 @@ export class KanbanSettingTab extends PluginSettingTab {
           }),
       );
 
+    /*
     // デフォルトの新規ファイル作成場所
+    // この設定は現在の仕様ではほとんど使用されないため、UIから非表示にしました。
+    // 将来的に「Bases View に依存しない Kanban ビュー」や「フォルダが決まらない特殊ケース」を
+    // サポートする場合に再度有効化を検討してください。
     new Setting(containerEl)
       .setName("Default new file location")
       .setDesc("Folder path where new cards will be created")
@@ -65,6 +71,7 @@ export class KanbanSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           }),
       );
+    */
 
     // デフォルトのソート順
     new Setting(containerEl)

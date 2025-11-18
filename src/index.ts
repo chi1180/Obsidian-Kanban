@@ -1,5 +1,5 @@
 /**
- * Obsidian better Kanban Plugin
+ * Obsidian Kanban board Plugin
  * Bases View として Kanban ボードを提供
  */
 
@@ -15,10 +15,10 @@ import "./styles/index.scss";
 const KANBAN_VIEW_TYPE = "kanban-board-view";
 
 /**
- * Obsidian better Kanban Plugin
- * Bases View として Kanban ボードビューを登録
+ * Obsidian Kanban board Plugin
+ * Bases View として Kanban ボードを提供
  */
-export default class ObsidianBetterKanbanPlugin extends Plugin {
+export default class ObsidianKanbanBoardPlugin extends Plugin {
   settings: KanbanPluginSettings;
 
   async onload() {
