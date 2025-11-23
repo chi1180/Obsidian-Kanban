@@ -428,23 +428,21 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - ビュー内設定パネルの Modal コンポーネント
 - 各ボード固有の設定をカスタマイズ
 - リアルタイム保存（Save/Cancelボタンなし）
+- **重要**: このパネルで設定される `sortOrder` が実際に使用されるソート順です（グローバル設定の `defaultSortOrder` は使用されていません）
 - 設定項目：
   - Column Property（グループ化するプロパティ）
   - Card Size（Small / Medium / Large）
-  - Sort Order（ソート順）
+  - **Sort Order（ソート順）** - 各ビュー個別に設定可能。作成日、更新日、タイトル、カスタム順から選択
   - Enable Drag and Drop
   - Show Card Count
   - Compact Mode
+  - Show Column Colors
   - **Column Order（カラム順序の編集）** ✅ ドラッグ&ドロップで並び替え可能
     - カラムのリスト表示（ドラッグハンドル付き）
     - ドラッグ&ドロップで順序変更
     - 各カラムに削除ボタン（順序から除外）
     - 変更は自動保存
   - **Reset Column Order（カラム順序のリセット）** - デフォルトのアルファベット順に戻す
-- **Show confirmation dialog when deleting cards（カード削除時の確認ダイアログ表示）** ✅ 実装済み
-  - トグルスイッチで有効/無効を切り替え
-  - 説明文: "Display a confirmation dialog before deleting a card. You can also disable this from the delete dialog itself."
-  - モーダルの「Never show again」で無効化された場合、ここで再度有効化可能
 - `renderColumnOrderList()`: カラム順序リストをレンダリング（ネイティブHTML5ドラッグ&ドロップAPI使用）
 
 #### **Settings Layer（設定管理層）**
@@ -456,24 +454,28 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - プラグイン全体のデフォルト設定を管理
 - 設定項目：
   - Default card size (Small / Medium / Large)
-  - Default new file location（新規ファイル作成場所）
-  - Default sort order（ソート順）
+  - ~~Default new file location（新規ファイル作成場所）~~ - コメントアウト済み（現在の仕様ではほとんど使用されない）
+  - ~~Default sort order（ソート順）~~ - コメントアウト済み（各ビューで個別に管理されており、グローバル設定は実質的に効果がない）
   - Enable drag and drop
   - Show card count
   - Compact mode
+  - Show column colors
+  - Show confirmation dialog when deleting cards
 
 ##### `src/settings/defaultSettings.ts`
 
 - プラグインのデフォルト設定値を定義
 - デフォルト値：
   - Default card size: medium
-  - Default new file location: /
-  - Default sort order: created
+  - Default new file location: / （互換性のため定義は残すが、UI では非表示）
+  - Default sort order: created （互換性のため定義は残すが、UI では非表示・実質未使用）
   - Enable drag and drop: true
   - Show card count: true
   - Compact mode: false
   - Show column colors: true
   - Show delete confirm dialog: true（カード削除時の確認ダイアログを表示）
+
+**注**: `defaultNewFileLocation` と `defaultSortOrder` は後方互換性のため型定義とデフォルト値は残していますが、設定 UI からは削除されています。実際のファイル作成場所はビューのフィルターから自動推測され、ソート順は各ビューの設定パネル（`SettingsPanel.tsx`）で個別に管理されています。
 
 #### **Utils Layer（ユーティリティ層）**
 
@@ -578,6 +580,17 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 - **JSDoc**: 複雑な関数には JSDoc コメントを付与
 - **TODO コメント**: タスクについてはその箇所に `// TODO ::: [ ] here is to do content` を残す
 
+### スタイル編集
+
+- **重要**: `styles.css` は `src/styles` の SCSS ファイルからコンパイルされたファイルです
+- スタイルの編集は必ず `src/styles` ディレクトリ内の SCSS ファイルで行ってください
+- `styles.css` を直接編集しないでください（ビルド時に上書きされます）
+- スタイルファイルの構成：
+  - `src/styles/index.scss`: エントリーポイント
+  - `src/styles/_variables.scss`: 変数定義
+  - `src/styles/_main.scss`: メインのスタイル定義
+- スタイルを変更した後は、ビルドして `styles.css` に反映させる必要があります
+
 ### HTML 属性のベストプラクティス
 
 - **ツールチップの重複を避ける**:
@@ -589,25 +602,27 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 
 ### ドラッグ&ドロップの実装
 
-#### **ボード上のドラッグ&ドロップ（`@hello-pangea/dnd` 使用）**
+#### **ボード上のドラッグ&ドロップ（`@dnd-kit` 使用）**
 
 - **カードのドラッグ**: カラム間でカードを移動
-  - 各カードを `Draggable` でラップ
-  - カラムを `Droppable` (vertical) でラップ
-  - **`renderClone`** を使用してドラッグ中のクローンをレンダリング（オフセット問題を回避）
+  - 各カードに `useSortable` フックを適用
+  - カラムごとに `SortableContext` でカードリストをラップ
+  - カラム自体を `useDroppable` でドロップエリアとして設定
+  - `DragOverlay` でドラッグ中のプレビューを表示
 - **カラムのドラッグ**: カラムの順序を並び替え
-  - カラムリスト全体を `Droppable` (horizontal) でラップ
-  - 各カラムを `Draggable` でラップ
-  - ドラッグハンドル（三本線アイコン）を `dragHandleProps` で制御
-  - `type="column"` で識別
-  - **`renderClone`** を使用してドラッグ中のクローンをレンダリング（カードと同じ仕組み）
-- **重要なオフセット問題の回避策**:
-  - **`renderClone` を使用する**（最も重要！）- 複雑なレイアウトによるオフセット問題を根本的に解決
-  - `transform` CSS プロパティは使用しない（ドラッグ位置がずれる）
-  - `gap` プロパティも使用しない（オフセットの原因）→ `margin` を使用
-  - `provided.draggableProps.style` を明示的に適用
-- ドラッグ中のスタイルは `provided.draggableProps.style` を適切に処理する
-- ホバー効果には `box-shadow` や `opacity` を使用し、`transform` は避ける
+  - 各カラムに `useSortable` フックを適用
+  - カラムリスト全体を `SortableContext` (horizontal) でラップ
+  - ドラッグハンドル（三本線アイコン）に `attributes` と `listeners` を適用
+  - `id` に `column-` プレフィックスで識別
+  - `DragOverlay` でドラッグ中のカラムプレビューを表示
+- **センサー設定**:
+  - `PointerSensor` で8px移動後にドラッグ開始（誤操作防止）
+  - `KeyboardSensor` でキーボード操作にも対応
+- **スタイルの適用**:
+  - `CSS.Transform.toString(transform)` でドラッグ時の transform を適用
+  - `transition` でアニメーションを適用
+  - ドラッグ中は `opacity: 0.5` と `cursor: grabbing`
+  - `DragOverlay` 内の要素は `cursor: grabbing` のみ
 
 #### **設定パネル内のドラッグ&ドロップ（ネイティブHTML5 API使用）**
 
@@ -640,8 +655,7 @@ Notion や Trello のようなカンバンボードの利便性と、Obsidian.md
 
 ### CSS
 
-- **ドラッグ&ドロップでの transform 使用**: カード要素やその親要素に `transform` を使用すると、ドラッグ位置がオフセットする問題が発生する（カラムのドラッグでも同様に使用しない）
-- **ドラッグ&ドロップでの gap 使用**: `gap` プロパティもオフセット問題を引き起こすため、flexbox の子要素に `margin` を使用する（最後の要素は `margin: 0`）
+- **スタイルファイルの編集**: 必ず `src/styles/*.scss` ファイルを編集し、`styles.css` は直接編集しない
 - **position: fixed/absolute の乱用**: レイアウトが崩れる原因になるため、必要最小限に留める
 - **カラムとカードのドラッグの混同**: `type` プロパティで明確に区別する（`type="column"` と デフォルト）
 - **カラムプロパティの色表示** ✅ 実装済み

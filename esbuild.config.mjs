@@ -1,7 +1,7 @@
 import esbuild from "esbuild";
 import { sassPlugin } from "esbuild-sass-plugin";
-import { env } from "node:process";
 import fs from "node:fs";
+import { env } from "node:process";
 
 const isProd = env.NODE_ENV === "production";
 const isWatch = process.argv.includes("--watch");
