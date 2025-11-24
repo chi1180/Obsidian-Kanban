@@ -1,3 +1,6 @@
+import React from "react";
+import { createRoot, type Root } from "react-dom/client";
+import KanbanBoard from "./ui";
 import { BasesView, type QueryController } from "obsidian";
 import { PLUGIN_CONFIG, SETTING_KEYS } from "./config";
 import type { Board } from "./types/kanban";
@@ -9,6 +12,7 @@ export class KanbanView extends BasesView {
   private containerEl: HTMLElement;
   private pluginSettings: PluginSettings;
   settings: PluginSettings;
+  root: Root;
 
   constructor(
     controller: QueryController,
@@ -35,6 +39,14 @@ export class KanbanView extends BasesView {
     console.dir(this.data.groupedData, { depth: null });
 
     this.containerEl.empty();
+    this.containerEl.createDiv().setAttr("id", "app");
+    const container = document.getElementById("app") as HTMLElement;
+    this.root = createRoot(container);
+
+    // Mount Kanban board element
+    this.root.render(
+      React.createElement(KanbanBoard, { boardData: boardData }),
+    );
   }
 
   /**
@@ -54,5 +66,12 @@ export class KanbanView extends BasesView {
         this.pluginSettings.showColumnColor,
       confirmCardDeletion: this.pluginSettings.confirmCardDeletion,
     };
+  }
+
+  /**
+   * Unmount React component when view is closed
+   */
+  public onunload(): void {
+    this.root.unmount();
   }
 }

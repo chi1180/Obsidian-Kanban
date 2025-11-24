@@ -10,6 +10,7 @@ import type {
   Property,
 } from "src/types/kanban";
 import { frontmatterTypeAssumption } from "./frontmatterTypeAssumption";
+import { generateColors } from "./colorGenerator";
 
 export function convertToKanbanBoardData(
   groupedData: BasesEntryGroup[],
@@ -17,12 +18,13 @@ export function convertToKanbanBoardData(
   const columns: Column[] = [];
 
   // generate colors
+  const colors = generateColors(groupedData.length);
 
   // convert groups to columns
   for (const group of groupedData) {
     const column: Column = {
       key: group.key.toString(),
-      // color: group.color,
+      color: colors[groupedData.indexOf(group)],
       cards: [],
     };
 

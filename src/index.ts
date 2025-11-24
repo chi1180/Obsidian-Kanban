@@ -4,6 +4,7 @@ import { KANBAN_VIEW_OPTIONS } from "./settings/viewOptions";
 import type { PluginSettings } from "./types/setting";
 import { KanbanView } from "./view";
 import { PluginSettingTag } from "./settings/pluginSettings";
+import "./ui/styles/index.scss";
 
 export default class KanbanViewPlugin extends Plugin {
   settings: PluginSettings;
