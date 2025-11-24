@@ -1,4 +1,4 @@
-import { ViewOption } from "obsidian";
+import type { ViewOption } from "obsidian";
 import { PLUGIN_SETTING_OPTIONS, SETTING_KEYS } from "src/config";
 import type { PluginSettings } from "src/types/setting";
 

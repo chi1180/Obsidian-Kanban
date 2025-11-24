@@ -18,7 +18,7 @@ export const PLUGIN_CONFIG = {
  * Keys for plugin settings
  */
 export const SETTING_KEYS = {
-  CARD_SIZE: "cardSize" as keyof PluginSettings,
+  CARD_SIZE: "cardSize" as keyof PluginSettings as string,
   SHOW_COLUMN_COLOR: "showColumnColor" as keyof PluginSettings,
   CONFIRM_CARD_DELETION: "confirmCardDeletion" as keyof PluginSettings,
 };

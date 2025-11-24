@@ -38,7 +38,10 @@ export class PluginSettingTag extends PluginSettingTab {
           .addOptions(PLUGIN_SETTING_OPTIONS[SETTING_KEYS.CARD_SIZE])
           .setValue(this.plugin.settings.cardSize)
           .onChange((val) =>
-            this.onChangedHandler(SETTING_KEYS.CARD_SIZE, val),
+            this.onChangedHandler(
+              SETTING_KEYS.CARD_SIZE as keyof PluginSettings,
+              val,
+            ),
           );
       });
     // Show column colors

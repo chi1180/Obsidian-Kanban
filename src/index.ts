@@ -16,7 +16,7 @@ export default class KanbanViewPlugin extends Plugin {
       name: PLUGIN_CONFIG.bases_view_name,
       icon: PLUGIN_CONFIG.bases_view_icon,
       factory: (controller, containerEl) =>
-        new KanbanView(controller, containerEl),
+        new KanbanView(controller, containerEl, this.settings),
       options: () => KANBAN_VIEW_OPTIONS(this.settings),
     });
   }
