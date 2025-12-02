@@ -1,9 +1,13 @@
 @import "variables";
 
-.kanban-card {
+.kanban-view-card {
   background-color: #ffffff;
   margin-bottom: 8px;
   padding: 8px;
   border: 1px solid #ddd;
   border-radius: 4px;
+
+  &.dragging {
+    opacity: 0.8;
+  }
 }

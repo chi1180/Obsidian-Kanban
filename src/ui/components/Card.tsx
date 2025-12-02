@@ -23,7 +23,6 @@ export default function CardComponent({
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    opacity: isDragging ? 0.5 : 1,
   };
 
   // try {
@@ -40,7 +39,7 @@ export default function CardComponent({
       style={style}
       {...attributes}
       {...listeners}
-      className="kanban-card"
+      className={`kanban-view-card ${isDragging ? "dragging" : ""}`}
     >
       {card.title}&nbsp;{JSON.stringify(card.properties)}
     </div>

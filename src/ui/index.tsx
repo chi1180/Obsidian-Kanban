@@ -28,8 +28,16 @@ import ColumnComponent from "./components/Column";
 import CardComponent from "./components/Card";
 import { ColumnOrder } from "src/utils/localStorage";
 import { PLUGIN_CONFIG } from "src/config";
+import matter from "gray-matter";
+import { TFile, type Vault } from "obsidian";
 
-export default function KanbanBoard({ boardData }: { boardData: Board }) {
+export default function KanbanBoard({
+  boardData,
+  vault,
+}: {
+  boardData: Board;
+  vault: Vault;
+}) {
   const _ColumnOrder = new ColumnOrder(PLUGIN_CONFIG.column_order_key);
   const [columns, setColumns] = useState(boardData.columns);
   // reordering columns
@@ -43,6 +51,16 @@ export default function KanbanBoard({ boardData }: { boardData: Board }) {
       setColumns(reorderedColumns);
     }
   }, []);
+
+  const [movingCardInfo, setMovingCardInfo] = useState({
+    path: null,
+    oldKey: null,
+    newKey: null,
+  } as {
+    path: string | null;
+    oldKey: string | null;
+    newKey: string | null;
+  });
 
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const lastOverId = useRef<UniqueIdentifier | null>(null);
@@ -199,6 +217,14 @@ export default function KanbanBoard({ boardData }: { boardData: Board }) {
         }
         if (col.key === overContainer) {
           const newCards = [...col.cards];
+
+          // Update moving card infodmation
+          setMovingCardInfo({
+            path: activeCards[activeIndex].file.path,
+            oldKey: activeContainer,
+            newKey: col.key,
+          });
+
           newCards.splice(newIndex, 0, activeCards[activeIndex]);
           return {
             ...col,
@@ -218,8 +244,46 @@ export default function KanbanBoard({ boardData }: { boardData: Board }) {
       return;
     }
 
-    // reorder columns
-    if (columnIds.includes(active.id as string) && over.id) {
+    if (
+      movingCardInfo.path !== null &&
+      movingCardInfo.newKey !== movingCardInfo.oldKey // ignore moving in the same column
+    ) {
+      // modify card file's property
+      setTimeout(() => {
+        try {
+          const file = vault.getAbstractFileByPath(movingCardInfo.path);
+          if (file instanceof TFile) {
+            const newKey = (
+              Array.isArray(JSON.stringify(movingCardInfo.newKey))
+                ? (JSON.parse(movingCardInfo.newKey) as string[])
+                : ([movingCardInfo.newKey] as string[])
+            ).map((key) => key.replace("#", ""));
+
+            file.vault.read(file).then((fileContent) => {
+              const { data, content } = matter(fileContent);
+              if (data["tags"]) {
+                data["tags"] = newKey.length === 1 ? newKey[0] : newKey;
+                file.vault.modify(file, matter.stringify(content, data));
+              }
+              console.log(
+                `[--DEBUG--] Here is moving card file content:\n${content}\n\nAnd here is parsed data:\n${JSON.stringify(content)}`,
+              );
+            });
+          }
+        } catch (error) {
+          console.error(
+            `No way ! Something went wrong !!\n${JSON.stringify(error)}`,
+          );
+        } finally {
+          setMovingCardInfo({
+            path: null,
+            oldKey: null,
+            newKey: null,
+          });
+        }
+      }, 300);
+    } else if (columnIds.includes(active.id as string) && over.id) {
+      // reorder columns
       const activeIndex = columnIds.indexOf(active.id as string);
       const overIndex = columnIds.indexOf(over.id as string);
 
@@ -233,12 +297,6 @@ export default function KanbanBoard({ boardData }: { boardData: Board }) {
 
         setColumns(newColumns);
       }
-    }
-
-    const activeContainer = findContainer(active.id);
-    if (!activeContainer) {
-      setActiveId(null);
-      return;
     }
 
     setActiveId(null);

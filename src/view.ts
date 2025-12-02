@@ -51,6 +51,7 @@ export class KanbanView extends BasesView {
     this.root.render(
       React.createElement(KanbanBoard, {
         boardData: boardData,
+        vault: this.app.vault,
       }),
     );
   }

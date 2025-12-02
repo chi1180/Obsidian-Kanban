@@ -38,6 +38,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "gray-matter": "^4.0.3",
     "lucide-react": "^0.548.0",
     "obsidian": "obsidianmd/obsidian-api#master",
     "react": "^18.3.1",
