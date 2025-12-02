@@ -10,21 +10,22 @@ import type {
   Property,
 } from "src/types/kanban";
 import { frontmatterTypeAssumption } from "./frontmatterTypeAssumption";
-import { generateColors } from "./colorGenerator";
+import { assignColors } from "./assignColors";
+import { BASE_COLORS } from "src/config";
 
 export function convertToKanbanBoardData(
   groupedData: BasesEntryGroup[],
 ): Column[] {
   const columns: Column[] = [];
 
-  // generate colors
-  const colors = generateColors(groupedData.length);
+  // assign colors
+  const colors = assignColors(groupedData.length);
 
   // convert groups to columns
   for (const group of groupedData) {
     const column: Column = {
       key: group.key.toString(),
-      color: colors[groupedData.indexOf(group)],
+      color: BASE_COLORS[colors[groupedData.indexOf(group)]],
       cards: [],
     };
 
@@ -32,7 +33,7 @@ export function convertToKanbanBoardData(
     for (const entry of group.entries) {
       // Make property with interfaces
       const customEntry = entry as ExpandedBaseEntry;
-      const properties: Card["properties"] = {};
+      const properties: Card["properties"] = [];
       for (const [key, value] of Object.entries(customEntry.frontmatter)) {
         const { type, val } = frontmatterTypeAssumption(
           key,
@@ -43,7 +44,7 @@ export function convertToKanbanBoardData(
           type: type,
           val: val,
         };
-        properties[key] = property;
+        properties.push(property);
       }
 
       const card: Card = {

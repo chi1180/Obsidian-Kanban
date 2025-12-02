@@ -16,7 +16,7 @@ export interface Column {
 export interface Card {
   title: string; // Title of the file
   file: TFile; // Reference to the Obsidian file
-  properties: Record<string, Property>;
+  properties: Property[];
 }
 
 /* === Below are property === */

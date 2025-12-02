@@ -12,6 +12,9 @@ export const PLUGIN_CONFIG = {
   bases_view_type: "kanban-view",
   bases_view_name: "Kanban",
   bases_view_icon: "kanban",
+
+  /* LOCALSTORAGE */
+  column_order_key: "kanban-view-column-order",
 };
 
 /**
@@ -43,4 +46,18 @@ export const DEFAULT_PLUGIN_SETTINGS: PluginSettings = {
   cardSize: "medium" as ViewOptions["cardSize"],
   showColumnColor: true,
   confirmCardDeletion: true,
+};
+
+/**
+ * Base colors for columns
+ */
+export const BASE_COLORS: Record<string, string> = {
+  gray: "#6B7280",
+  sky: "#0284C7",
+  emerald: "#059669",
+  amber: "#D97706",
+  violet: "#7C3AED",
+  rose: "#E11D48",
+  slate: "#64748B",
+  stone: "#78716C",
 };

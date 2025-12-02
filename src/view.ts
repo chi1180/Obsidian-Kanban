@@ -6,6 +6,7 @@ import { PLUGIN_CONFIG, SETTING_KEYS } from "./config";
 import type { Board } from "./types/kanban";
 import type { PluginSettings } from "./types/setting";
 import { convertToKanbanBoardData } from "./utils/kanbanBoardData";
+import { ColumnOrder } from "./utils/localStorage";
 
 export class KanbanView extends BasesView {
   readonly type = PLUGIN_CONFIG.bases_view_type;
@@ -25,13 +26,16 @@ export class KanbanView extends BasesView {
   }
 
   public onDataUpdated(): void {
-    this.loadSettings();
+    // get columns
+    const columns = convertToKanbanBoardData(this.data.groupedData);
+
+    this.loadSettings(columns.map((col) => col.key));
 
     // Make Kanban board data
     const boardData: Board = {
       available_properties: this.data.properties,
       settings: this.settings,
-      columns: convertToKanbanBoardData(this.data.groupedData),
+      columns: columns,
     };
 
     // DEBUG //
@@ -45,7 +49,9 @@ export class KanbanView extends BasesView {
 
     // Mount Kanban board element
     this.root.render(
-      React.createElement(KanbanBoard, { boardData: boardData }),
+      React.createElement(KanbanBoard, {
+        boardData: boardData,
+      }),
     );
   }
 
@@ -53,7 +59,32 @@ export class KanbanView extends BasesView {
    * Load settings from view options or fallback to plugin settings
    * Confirm card deletion is not a view option, so always use plugin setting
    */
-  loadSettings() {
+  loadSettings(columnKeys: string[]) {
+    console.log(columnKeys);
+    // if column order is not set, it is the first time
+    const _ColumnOrder = new ColumnOrder(PLUGIN_CONFIG.column_order_key);
+    const isFirstTime = _ColumnOrder.get() === null;
+    if (isFirstTime) {
+      _ColumnOrder.set(columnKeys);
+    } else {
+      // Update column order
+      const existingColumnKeys = _ColumnOrder.get();
+
+      // if there are some differences
+      const areDifferent =
+        JSON.stringify(existingColumnKeys) !== JSON.stringify(columnKeys);
+      if (areDifferent) {
+        // filter out removed keys
+        const updatedColumnKeys = existingColumnKeys.filter((key) =>
+          columnKeys.includes(key),
+        );
+        // check new keys
+        for (const key of columnKeys)
+          if (!updatedColumnKeys.includes(key)) updatedColumnKeys.push(key);
+        _ColumnOrder.set(updatedColumnKeys);
+      }
+    }
+
     this.settings = {
       cardSize:
         (this.config.get(
