@@ -3,9 +3,10 @@
 .kanban-board {
   width: 100%;
   height: 100%;
-  padding-inline: $space-medium;
+  padding: $space-medium;
   display: flex;
   flex-direction: row;
-  gap: $space-medium;
+  gap: $space-large;
   overflow: scroll;
+  align-items: flex-start;
 }

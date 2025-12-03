@@ -1,13 +1,14 @@
 @import "variables";
 
 .kanban-view-card {
+  width: 100%;
   background-color: #ffffff;
-  margin-bottom: 8px;
-  padding: 8px;
+  padding: $space-small;
   border: 1px solid #ddd;
   border-radius: 4px;
+  overflow-x: auto;
 
   &.dragging {
-    opacity: 0.8;
+    opacity: $opacity-thick;
   }
 }

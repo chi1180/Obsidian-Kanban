@@ -1,9 +1,75 @@
 @import "variables";
 
 .kanban-column {
-  flex: 1;
-  background-color: #f4f4f4;
-  padding: 8px;
-  border-radius: 4px;
-  width: $board-width-small;
+  width: $column-width-medium; // It's used as default card size
+  border-radius: $border-radius-large;
+
+  // Column size
+  &.small {
+    width: $column-width-small !important;
+  }
+
+  &.medium {
+    width: $column-width-medium !important;
+  }
+
+  &.large {
+    width: $column-width-large !important;
+  }
+
+  // When dragged
+  &.dragging {
+    opacity: $opacity-thick;
+  }
+
+  // When showColumnColors is disabled
+  &.no-base-color {
+    border: var(--border-width) solid var(--color-base-05);
+  }
+
+  // Column header
+  .header {
+    width: 100%;
+    border-top-right-radius: $border-radius-large;
+    border-top-left-radius: $border-radius-large;
+    padding: $space-large $space-large $space-medium $space-medium;
+    cursor: grab;
+    user-select: none;
+    position: sticky;
+    top: calc($space-medium + $border-radius-large) * -1;
+    display: flex;
+    flex-direction: row;
+    gap: $space-medium;
+    align-items: center;
+    color: white;
+
+    // when showColumnColors is disabled
+    &.no-base-color {
+      background-color: var(--background-secondary);
+      color: var(--text-normal);
+    }
+
+    // Key
+    .key {
+      background-color: var(--background-secondary);
+      height: $tag-height;
+      display: flex;
+      margin-top: $space-small;
+    }
+  }
+
+  // Cards container
+  .cards-container {
+    width: 100%;
+    padding: $space-medium;
+    display: flex;
+    flex-direction: column;
+    gap: $space-medium;
+    border-bottom-right-radius: $border-radius-large;
+    border-bottom-left-radius: $border-radius-large;
+
+    &.no-base-color {
+      background-color: var(--background-secondary-alt);
+    }
+  }
 }

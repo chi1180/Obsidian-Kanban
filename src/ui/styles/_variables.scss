@@ -1,9 +1,24 @@
 /* === Values === */
 
 // Space
-$space-small: 0.5rem;
-$space-medium: 1rem;
-$space-large: 2rem;
+$space-small: 0.2rem;
+$space-medium: 0.4rem;
+$space-large: 0.8rem;
 
-// Board size
-$board-width-small: 120rem;
+// Column width
+$column-width-small: 18rem;
+$column-width-medium: 22rem;
+$column-width-large: 26rem;
+
+// Border radius
+$border-radius-small: 0.2rem;
+$border-radius-medium: 0.4rem;
+$border-radius-large: 0.8rem;
+
+// Opacity
+$opacity-thin: 0.2;
+$opacity-medium: 0.5;
+$opacity-thick: 0.8;
+
+// Size
+$tag-height: 1.4rem;

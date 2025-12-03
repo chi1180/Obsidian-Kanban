@@ -32,7 +32,6 @@ export interface Property {
     | "tags"
     | "text";
   val: string | string[] | boolean;
-  onChanged?: (value: string | boolean) => void;
 }
 
 export interface ExpandedBaseEntry extends BasesEntry {

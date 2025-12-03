@@ -41,6 +41,8 @@ export default function KanbanBoard({
   const _ColumnOrder = new ColumnOrder(PLUGIN_CONFIG.column_order_key);
   const [columns, setColumns] = useState(boardData.columns);
   // reordering columns
+
+  //biome-ignore lint/correctness/useExhaustiveDependencies: need to run only once
   useEffect(() => {
     if (_ColumnOrder.get()) {
       const columnOrder = _ColumnOrder.get();
@@ -68,6 +70,10 @@ export default function KanbanBoard({
 
   // get ids of columns
   const columnIds = columns.map((col) => col.key);
+
+  // setting & properties
+  // const availableProperties = boardData.available_properties;
+  const settings = boardData.settings;
 
   // if the column is active
   const isSortingContainer = activeId
@@ -265,9 +271,6 @@ export default function KanbanBoard({
                 data["tags"] = newKey.length === 1 ? newKey[0] : newKey;
                 file.vault.modify(file, matter.stringify(content, data));
               }
-              console.log(
-                `[--DEBUG--] Here is moving card file content:\n${content}\n\nAnd here is parsed data:\n${JSON.stringify(content)}`,
-              );
             });
           }
         } catch (error) {
@@ -313,7 +316,7 @@ export default function KanbanBoard({
     .find((card) => card.file.path === activeId);
 
   return (
-    <div className="kanban-board" style={{ display: "flex", gap: "10px" }}>
+    <div className="kanban-board">
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetectionStrategy}
@@ -331,6 +334,9 @@ export default function KanbanBoard({
               column={column}
               key={column.key}
               disabled={isSortingContainer}
+              className={settings.cardSize}
+              baseColor={column.color ? column.color : undefined}
+              vault={vault}
             />
           ))}
         </SortableContext>
@@ -338,13 +344,20 @@ export default function KanbanBoard({
         <DragOverlay>
           {activeId && activeColumn ? (
             <div style={{ opacity: 0.5 }}>
-              <ColumnComponent column={activeColumn} disabled={false} />
+              <ColumnComponent
+                column={activeColumn}
+                disabled={false}
+                className={settings.cardSize}
+                baseColor={activeColumn.color ? activeColumn.color : undefined}
+              />
             </div>
           ) : null}
           {activeId && activeCard ? (
-            <div style={{ opacity: 0.5 }}>
-              <CardComponent card={activeCard} id={activeCard.file.path} />
-            </div>
+            <CardComponent
+              card={activeCard}
+              id={activeCard.file.path}
+              className="dragging"
+            />
           ) : null}
         </DragOverlay>
       </DndContext>

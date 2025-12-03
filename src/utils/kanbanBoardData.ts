@@ -10,22 +10,25 @@ import type {
   Property,
 } from "src/types/kanban";
 import { frontmatterTypeAssumption } from "./frontmatterTypeAssumption";
-import { assignColors } from "./assignColors";
+import { assignColors } from "./colorGenerator";
 import { BASE_COLORS } from "src/config";
 
 export function convertToKanbanBoardData(
   groupedData: BasesEntryGroup[],
+  showColumnColor?: boolean,
 ): Column[] {
   const columns: Column[] = [];
 
   // assign colors
-  const colors = assignColors(groupedData.length);
+  const colors = showColumnColor ? assignColors(groupedData.length) : [];
 
   // convert groups to columns
   for (const group of groupedData) {
     const column: Column = {
       key: group.key.toString(),
-      color: BASE_COLORS[colors[groupedData.indexOf(group)]],
+      color: showColumnColor
+        ? BASE_COLORS[colors[groupedData.indexOf(group)]]
+        : undefined,
       cards: [],
     };
 

@@ -27,9 +27,16 @@ export class KanbanView extends BasesView {
 
   public onDataUpdated(): void {
     // get columns
-    const columns = convertToKanbanBoardData(this.data.groupedData);
+    const first_columns = convertToKanbanBoardData(this.data.groupedData);
 
-    this.loadSettings(columns.map((col) => col.key));
+    // load settings; have to assign columns for column order data updata
+    this.loadSettings(first_columns.map((col) => col.key));
+
+    // after load setting, recall it
+    const columns = convertToKanbanBoardData(
+      this.data.groupedData,
+      this.settings.showColumnColor,
+    );
 
     // Make Kanban board data
     const boardData: Board = {
@@ -45,6 +52,7 @@ export class KanbanView extends BasesView {
     this.containerEl.empty();
     this.containerEl.createDiv().setAttr("id", "app");
     const container = document.getElementById("app") as HTMLElement;
+    container.className = "kanban-app";
     this.root = createRoot(container);
 
     // Mount Kanban board element
