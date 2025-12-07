@@ -8,7 +8,7 @@ import React from "react";
 import type { Column } from "src/types/kanban";
 import CardComponent from "./Card";
 import { blurredColor } from "src/utils/colorGenerator";
-import { Vault } from "obsidian";
+import type { Vault } from "obsidian";
 
 export default function ColumnComponent({
   column,
@@ -16,12 +16,14 @@ export default function ColumnComponent({
   className,
   baseColor,
   vault,
+  columns,
 }: {
   column: Column;
   disabled: boolean;
   className?: string;
   baseColor?: string;
   vault?: Vault;
+  columns?: Column[];
 }) {
   const {
     attributes,
@@ -90,6 +92,7 @@ export default function ColumnComponent({
               id={card.file.path}
               disabled={disabled}
               vault={vault}
+              columns={columns}
             />
           ))}
         </SortableContext>
