@@ -8,7 +8,7 @@
   - [x] Bases results
 - [ ] Implement Board view
   - [x] Color generator for cards
-  - [ ] Integrate column order setting data
+  - [x] Integrate column order setting data
   - [x] Integrate file modification function
   - [x] Apply view setting to UI
   - [x] Column component
