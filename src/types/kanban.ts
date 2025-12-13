@@ -2,6 +2,7 @@ import type { BasesEntry, TFile } from "obsidian";
 import type { PluginSettings } from "./setting";
 
 export interface Board {
+  id: string; // Unique identifier for the board
   available_properties: string[]; // List of available properties for cards
   settings: PluginSettings;
   columns: Column[];

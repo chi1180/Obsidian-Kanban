@@ -8,28 +8,25 @@
   - [x] Bases results
 - [ ] Implement Board view
   - [x] Color generator for cards
-  - [x] Integrate column order setting data
+  - [ ] Integrate column order setting data
   - [x] Integrate file modification function
   - [x] Apply view setting to UI
-  - [ ] Styling
-    - [x] Column component
-      - [x] Spacing
-      - [x] Integrate result counter
-      - [x] Property coloring
-      - [x] When showColumnColor is enabled
-      - [x] When showColumnColor is disabled
-    - [ ] Card component
-      - [x] Title
-      - [x] Properties
-        - [x] Ignoring "tags"
-        - [x] "text" with text input
-        - [x] "number" with number input
-        - [x] "checkbox" with checkbox input
-        - [x] "date" with date input
-        - [x] "dateAndTime" with date and time input
-        - [ ] "list" with list input
-      - [ ] Styling them
-  - [ ] Layout Board component
+  - [x] Column component
+    - [x] Spacing
+    - [x] Integrate result counter
+    - [x] Property coloring
+    - [x] When showColumnColor is enabled
+    - [x] When showColumnColor is disabled
+  - [ ] Card component
+    - [ ] Title
+    - [ ] Properties
+      - [x] Ignoring "tags"
+      - [ ] "text" with text input
+      - [ ] "number" with number input
+      - [ ] "checkbox" with checkbox input
+      - [ ] "date" with date input
+      - [ ] "dateAndTime" with date and time input
+      - [ ] "list" with list input
 
 ---
 

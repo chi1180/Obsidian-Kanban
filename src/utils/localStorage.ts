@@ -40,6 +40,32 @@ export class BoardViewData {
     }
   }
 
+  update(
+    key: "columnOrder" | "columns",
+    val:
+      | LocalStorageBoardViewData["columnOrder"]
+      | LocalStorageBoardViewData["columns"],
+  ) {
+    if (typeof window !== "undefined") {
+      try {
+        const data = localStorage.getItem(this.storageKey);
+        if (data) {
+          localStorage.setItem(
+            this.storageKey,
+            JSON.stringify({
+              ...JSON.parse(data),
+              [key]: val,
+            }),
+          );
+        }
+      } catch (error) {
+        console.log(
+          `[--ERROR--] Something went wrong to try update boardViewData :::\n${JSON.stringify(error)}`,
+        );
+      }
+    }
+  }
+
   delete() {
     if (typeof window !== "undefined") {
       try {

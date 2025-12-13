@@ -8,7 +8,7 @@ import type { PluginSettings } from "./types/setting";
 import KanbanBoard from "./ui";
 import { convertToKanbanColumnData } from "./utils/kanbanBoardData";
 import { BoardViewData } from "./utils/localStorage";
-import { ColumnForBoardViewData } from "./types/localStorage";
+import type { ColumnForBoardViewData } from "./types/localStorage";
 
 export class KanbanView extends BasesView {
   readonly type = PLUGIN_CONFIG.bases_view_type;
@@ -38,6 +38,7 @@ export class KanbanView extends BasesView {
 
     // Make Kanban board data
     const boardData: Board = {
+      id: this.boardViewId,
       available_properties: this.data.properties,
       settings: this.settings,
       columns: columns,

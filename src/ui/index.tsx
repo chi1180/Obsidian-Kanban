@@ -28,6 +28,7 @@ import ColumnComponent from "./components/Column";
 import CardComponent from "./components/Card";
 import matter from "gray-matter";
 import { TFile, type Vault } from "obsidian";
+import { BoardViewData } from "src/utils/localStorage";
 
 export default function KanbanBoard({
   boardData,
@@ -36,6 +37,19 @@ export default function KanbanBoard({
   boardData: Board;
   vault: Vault;
 }) {
+  // localStorage data management class
+  const _boardViewData = new BoardViewData(boardData.id);
+
+  // update column order
+  const existingColumnOrder = _boardViewData.get("columnOrder") as string[];
+  if (existingColumnOrder) {
+    boardData.columns.sort((a, b) => {
+      return (
+        existingColumnOrder.indexOf(a.key) - existingColumnOrder.indexOf(b.key)
+      );
+    });
+  }
+
   const [columns, setColumns] = useState(boardData.columns);
 
   const [movingCardInfo, setMovingCardInfo] = useState({
@@ -278,8 +292,10 @@ export default function KanbanBoard({
         const newColumns = arrayMove(columns, activeIndex, overIndex);
 
         // Update column order in view config
-        const newColumnOrder = newColumns.map((col) => col.key);
-        console.log(`[--DEBUG--] newColumnOrder: ${newColumnOrder}`);
+        _boardViewData.update(
+          "columnOrder",
+          newColumns.map((col) => col.key),
+        );
 
         setColumns(newColumns);
       }
