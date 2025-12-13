@@ -13,7 +13,7 @@ import { frontmatterTypeAssumption } from "./frontmatterTypeAssumption";
 import { assignColors } from "./colorGenerator";
 import { BASE_COLORS } from "src/config";
 
-export function convertToKanbanBoardData(
+export function convertToKanbanColumnData(
   groupedData: BasesEntryGroup[],
   showColumnColor?: boolean,
 ): Column[] {

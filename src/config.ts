@@ -8,13 +8,21 @@ export const PLUGIN_CONFIG = {
   plugin_id: "kanban-view",
   plugin_name: "Kanban view",
 
+  /* DOM */
+  plugin_container_id: "kanban-view-container",
+
   /* BASES */
   bases_view_type: "kanban-view",
   bases_view_name: "Kanban",
   bases_view_icon: "kanban",
+};
 
-  /* LOCALSTORAGE */
-  column_order_key: "kanban-view-column-order",
+/**
+ * Keys of localStorage data
+ */
+export const LOCAL_STORAGE_KEYS = {
+  board_data_key: (boardViewId: string) =>
+    `${PLUGIN_CONFIG.plugin_id}_board-data-${boardViewId}`,
 };
 
 /**
@@ -24,6 +32,7 @@ export const SETTING_KEYS = {
   CARD_SIZE: "cardSize" as keyof PluginSettings as string,
   SHOW_COLUMN_COLOR: "showColumnColor" as keyof PluginSettings,
   CONFIRM_CARD_DELETION: "confirmCardDeletion" as keyof PluginSettings,
+  VIEW_ID: "id",
 };
 
 /**

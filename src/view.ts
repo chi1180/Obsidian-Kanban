@@ -1,12 +1,14 @@
+import { BasesView, type QueryController } from "obsidian";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import KanbanBoard from "./ui";
-import { BasesView, type QueryController } from "obsidian";
+import { v4 as uuidv4 } from "uuid";
 import { PLUGIN_CONFIG, SETTING_KEYS } from "./config";
 import type { Board } from "./types/kanban";
 import type { PluginSettings } from "./types/setting";
-import { convertToKanbanBoardData } from "./utils/kanbanBoardData";
-import { ColumnOrder } from "./utils/localStorage";
+import KanbanBoard from "./ui";
+import { convertToKanbanColumnData } from "./utils/kanbanBoardData";
+import { BoardViewData } from "./utils/localStorage";
+import { ColumnForBoardViewData } from "./types/localStorage";
 
 export class KanbanView extends BasesView {
   readonly type = PLUGIN_CONFIG.bases_view_type;
@@ -14,6 +16,7 @@ export class KanbanView extends BasesView {
   private pluginSettings: PluginSettings;
   settings: PluginSettings;
   root: Root;
+  boardViewId: string;
 
   constructor(
     controller: QueryController,
@@ -26,14 +29,9 @@ export class KanbanView extends BasesView {
   }
 
   public onDataUpdated(): void {
-    // get columns
-    const first_columns = convertToKanbanBoardData(this.data.groupedData);
+    this.loadSettings();
 
-    // load settings; have to assign columns for column order data updata
-    this.loadSettings(first_columns.map((col) => col.key));
-
-    // after load setting, recall it
-    const columns = convertToKanbanBoardData(
+    const columns = convertToKanbanColumnData(
       this.data.groupedData,
       this.settings.showColumnColor,
     );
@@ -49,10 +47,38 @@ export class KanbanView extends BasesView {
     console.dir(boardData, { depth: null });
     console.dir(this.data.groupedData, { depth: null });
 
+    /* Manage localStorage board view data */
+    const _BoardViewData = new BoardViewData(this.boardViewId);
+    // Check existing columnOrder data
+    const existingColumnOrder = _BoardViewData.get("columnOrder") as string[];
+    const columnsDataForStorage = boardData.columns.map((column) => ({
+      ...column,
+      cards: column.cards.map(({ title, properties }) => ({
+        title,
+        properties,
+      })),
+    })) as ColumnForBoardViewData[];
+
+    if (existingColumnOrder) {
+      _BoardViewData.save({
+        columnOrder: existingColumnOrder,
+        columns: columnsDataForStorage,
+      });
+    } else {
+      _BoardViewData.save({
+        columnOrder: boardData.columns.map((column) => column.key),
+        columns: columnsDataForStorage,
+      });
+    }
+
     this.containerEl.empty();
-    this.containerEl.createDiv().setAttr("id", "app");
-    const container = document.getElementById("app") as HTMLElement;
-    container.className = "kanban-app";
+    this.containerEl
+      .createDiv()
+      .setAttr("id", `${PLUGIN_CONFIG.plugin_container_id}`);
+    const container = document.getElementById(
+      PLUGIN_CONFIG.plugin_container_id,
+    ) as HTMLElement;
+    container.className = PLUGIN_CONFIG.plugin_container_id;
     this.root = createRoot(container);
 
     // Mount Kanban board element
@@ -68,32 +94,7 @@ export class KanbanView extends BasesView {
    * Load settings from view options or fallback to plugin settings
    * Confirm card deletion is not a view option, so always use plugin setting
    */
-  loadSettings(columnKeys: string[]) {
-    console.log(columnKeys);
-    // if column order is not set, it is the first time
-    const _ColumnOrder = new ColumnOrder(PLUGIN_CONFIG.column_order_key);
-    const isFirstTime = _ColumnOrder.get() === null;
-    if (isFirstTime) {
-      _ColumnOrder.set(columnKeys);
-    } else {
-      // Update column order
-      const existingColumnKeys = _ColumnOrder.get();
-
-      // if there are some differences
-      const areDifferent =
-        JSON.stringify(existingColumnKeys) !== JSON.stringify(columnKeys);
-      if (areDifferent) {
-        // filter out removed keys
-        const updatedColumnKeys = existingColumnKeys.filter((key) =>
-          columnKeys.includes(key),
-        );
-        // check new keys
-        for (const key of columnKeys)
-          if (!updatedColumnKeys.includes(key)) updatedColumnKeys.push(key);
-        _ColumnOrder.set(updatedColumnKeys);
-      }
-    }
-
+  loadSettings() {
     this.settings = {
       cardSize:
         (this.config.get(
@@ -106,6 +107,16 @@ export class KanbanView extends BasesView {
         this.pluginSettings.showColumnColor,
       confirmCardDeletion: this.pluginSettings.confirmCardDeletion,
     };
+
+    // Manage boardViewId
+    const existingBoardViewId = this.config.get(SETTING_KEYS.VIEW_ID) as string;
+    if (existingBoardViewId) {
+      this.boardViewId = existingBoardViewId;
+    } else {
+      const newBoardViewId = uuidv4();
+      this.boardViewId = newBoardViewId;
+      this.config.set(SETTING_KEYS.VIEW_ID, newBoardViewId);
+    }
   }
 
   /**

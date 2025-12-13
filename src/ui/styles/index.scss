@@ -15,8 +15,11 @@
   list-style: none;
 }
 
-// Entry element of plugin
-.kanban-app {
+/*
+* Entry element of plugin
+* !!This should be same name as PLUGIN_CONFIG.plugin_container_id
+*/
+.kanban-view-container {
   width: 100%;
   height: 100%;
 }

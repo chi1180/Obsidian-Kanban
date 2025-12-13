@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   closestCenter,
   type CollisionDetection,
@@ -23,11 +23,9 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { useCallback, useRef, useState } from "react";
-import type { Board, Column } from "src/types/kanban";
+import type { Board } from "src/types/kanban";
 import ColumnComponent from "./components/Column";
 import CardComponent from "./components/Card";
-import { ColumnOrder } from "src/utils/localStorage";
-import { PLUGIN_CONFIG } from "src/config";
 import matter from "gray-matter";
 import { TFile, type Vault } from "obsidian";
 
@@ -38,21 +36,7 @@ export default function KanbanBoard({
   boardData: Board;
   vault: Vault;
 }) {
-  const _ColumnOrder = new ColumnOrder(PLUGIN_CONFIG.column_order_key);
   const [columns, setColumns] = useState(boardData.columns);
-  // reordering columns
-
-  //biome-ignore lint/correctness/useExhaustiveDependencies: need to run only once
-  useEffect(() => {
-    if (_ColumnOrder.get()) {
-      const columnOrder = _ColumnOrder.get();
-      const reorderedColumns: Column[] = [];
-      for (const key of columnOrder) {
-        reorderedColumns.push(columns.filter((col) => col.key === key)[0]);
-      }
-      setColumns(reorderedColumns);
-    }
-  }, []);
 
   const [movingCardInfo, setMovingCardInfo] = useState({
     path: null,
@@ -296,7 +280,6 @@ export default function KanbanBoard({
         // Update column order in view config
         const newColumnOrder = newColumns.map((col) => col.key);
         console.log(`[--DEBUG--] newColumnOrder: ${newColumnOrder}`);
-        _ColumnOrder.set(newColumnOrder);
 
         setColumns(newColumns);
       }

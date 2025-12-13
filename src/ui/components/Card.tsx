@@ -5,7 +5,6 @@ import { TFile, type Vault } from "obsidian";
 import React, { useEffect, useState } from "react";
 import type { Card, Column, Property } from "src/types/kanban";
 import ListComponent from "./List";
-import { getAvailableValues } from "src/utils/getAvailableValues";
 
 export default function CardComponent({
   card,
@@ -13,7 +12,6 @@ export default function CardComponent({
   disabled,
   className,
   vault,
-  columns,
 }: {
   card: Card;
   id: string;
@@ -113,12 +111,7 @@ export default function CardComponent({
           </div>
         );
       case "list":
-        return (
-          <ListComponent
-            property={property}
-            availableValues={getAvailableValues(columns, property.name)}
-          />
-        );
+        return <ListComponent property={property} />;
       case "number":
         return (
           <div className="property-with-name">
