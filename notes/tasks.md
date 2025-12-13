@@ -22,11 +22,29 @@
     - [ ] Properties
       - [x] Ignoring "tags"
       - [ ] "text" with text input
+        - [x] Just pure element
+        - [ ] Styling
+        - [ ] File modification function
       - [ ] "number" with number input
+        - [x] Just pure element
+        - [ ] Styling
+        - [ ] File modification function
       - [ ] "checkbox" with checkbox input
+        - [x] Just pure element
+        - [ ] Styling
+        - [ ] File modification function
       - [ ] "date" with date input
+        - [x] Just pure element
+        - [ ] Styling
+        - [ ] File modification function
       - [ ] "dateAndTime" with date and time input
+        - [x] Just pure element
+        - [ ] Styling
+        - [ ] File modification function
       - [ ] "list" with list input
+        - [ ] Just pure element
+        - [ ] Styling
+        - [ ] File modification function
 
 ---
 
