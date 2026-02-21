@@ -56,12 +56,18 @@
             text-align: start;
             text-wrap: auto;
             width: 100%;
+
+            p {
+              white-space: pre-wrap;
+            }
           }
         }
 
         textarea {
           width: 100%;
-          resize: block;
+          height: auto;
+          resize: none;
+          overflow: hidden;
         }
       }
     }

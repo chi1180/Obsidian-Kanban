@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 
 /**
  * Prop interface
@@ -13,6 +13,19 @@ export interface TextProps {
 
 export default function Text({ propertyLabel, value, onChange }: TextProps) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  function handleButtonClick() {
+    setIsEditing(!isEditing);
+    setTimeout(() => {
+      adjustTextareaHeight(textareaRef.current);
+    }, 0);
+  }
+
+  function adjustTextareaHeight(element: HTMLTextAreaElement) {
+    // Auto-adjust height
+    element.setCssProps({ height: `${element.scrollHeight}px` });
+  }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter") {
@@ -25,28 +38,36 @@ export default function Text({ propertyLabel, value, onChange }: TextProps) {
     if (e.key === "Escape") {
       setIsEditing(false);
     }
-    // ドラッグイベントを防止
+    // Avoid triggering other events (e.g., card dragging) when pressing keys while editing
     e.stopPropagation();
   }
 
   function handlePointerDown(e: React.PointerEvent<HTMLTextAreaElement>) {
-    // ドラッグの開始を防止
+    // Avoid triggering other events (e.g., card dragging) when clicking the textarea
     e.stopPropagation();
+  }
+
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    adjustTextareaHeight(e.currentTarget);
   }
 
   return (
     <div className="text-property" data-tooltip={propertyLabel}>
       {isEditing ? (
         <textarea
+          ref={textareaRef}
           defaultValue={value}
+          onChange={handleChange}
           onPointerDown={handlePointerDown}
           onKeyDown={handleKeyDown}
-          // biome-ignore lint/a11y/noAutofocus: Since user enter to edit mode on demand, autoFocus is not a problem.s
+          // biome-ignore lint/a11y/noAutofocus: Since user enter to edit mode on demand, autoFocus is not a problem.
           autoFocus
         ></textarea>
       ) : (
-        <button type="button" onClick={() => setIsEditing(!isEditing)}>
-          <div>{value}</div>
+        <button type="button" onClick={() => handleButtonClick()}>
+          <div>
+            <p>{value}</p>
+          </div>
         </button>
       )}
     </div>
