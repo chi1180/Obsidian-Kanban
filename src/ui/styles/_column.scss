@@ -34,6 +34,7 @@
     background-color: var(--background-primary);
     position: sticky;
     top: 0;
+    z-index: 1;
 
     // Column header
     .header {
