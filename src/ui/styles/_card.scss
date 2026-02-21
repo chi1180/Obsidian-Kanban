@@ -4,7 +4,7 @@
   width: 100%;
   background-color: var(--background-secondary);
   border-radius: $border-radius-medium;
-  overflow-x: auto;
+  overflow: visible;
   box-shadow: 1px 1px var(--background-primary-alt);
   padding: $space-medium;
 

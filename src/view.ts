@@ -1,4 +1,4 @@
-import { BasesView, type QueryController } from "obsidian";
+import { BasesView, type QueryController, setTooltip } from "obsidian";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { v4 as uuidv4 } from "uuid";
@@ -89,6 +89,24 @@ export class KanbanView extends BasesView {
         vault: this.app.vault,
       }),
     );
+
+    setTimeout(() => {
+      // Set tooltips
+      const tooltipElements =
+        this.containerEl.querySelectorAll("[data-tooltip]");
+      tooltipElements.forEach((el) => {
+        const tooltipText = el.getAttribute("data-tooltip") as string;
+        const targetElem = el as HTMLElement;
+
+        if (el.className === "text-property") {
+          setTooltip(targetElem, tooltipText, {
+            placement: "left",
+          });
+        } else {
+          setTooltip(targetElem, tooltipText);
+        }
+      });
+    }, 0);
   }
 
   /**

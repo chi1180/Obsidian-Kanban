@@ -6,11 +6,12 @@ import React, { useState } from "react";
  * Prop interface
  */
 export interface TextProps {
+  propertyLabel: string;
   value: string;
   onChange: (value: string) => void;
 }
 
-export default function Text({ value, onChange }: TextProps) {
+export default function Text({ propertyLabel, value, onChange }: TextProps) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -35,7 +36,7 @@ export default function Text({ value, onChange }: TextProps) {
   }
 
   return (
-    <div className="text-property">
+    <div className="text-property" data-tooltip={propertyLabel}>
       {isEditing ? (
         <textarea
           defaultValue={value}

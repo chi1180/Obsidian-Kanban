@@ -124,7 +124,13 @@ export default function CardComponent({
           </div>
         );
       default:
-        return <Text value={property.val.toString()} onChange={() => {}} />;
+        return (
+          <Text
+            propertyLabel={property.name}
+            value={property.val.toString()}
+            onChange={() => {}}
+          />
+        );
     }
   }
 
