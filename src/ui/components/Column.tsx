@@ -57,26 +57,29 @@ export default function ColumnComponent({
       }
       className={`kanban-column ${className} ${baseColor ? "" : "no-base-color"} ${isDragging ? "dragging" : ""}`}
     >
-      {/* Header */}
-      <div
-        {...attributes}
-        {...listeners}
-        className={`header ${baseColor ? "" : "no-base-color"}`}
-        style={
-          baseColor
-            ? {
-                backgroundColor: baseColor,
-              }
-            : null
-        }
-      >
-        <span
-          className="key"
-          style={baseColor ? { backgroundColor: baseColor } : null}
+      {/* Header container*/}
+      <div className="header-container">
+        {/* Header */}
+        <div
+          {...attributes}
+          {...listeners}
+          className={`header ${baseColor ? "" : "no-base-color"}`}
+          style={
+            baseColor
+              ? {
+                  backgroundColor: baseColor,
+                }
+              : null
+          }
         >
-          {column.key.replace("#", "")}
-        </span>
-        <div>{column.cards.length}</div>
+          <span
+            className="key"
+            style={baseColor ? { backgroundColor: baseColor } : null}
+          >
+            {column.key.replace("#", "")}
+          </span>
+          <div>{column.cards.length}</div>
+        </div>
       </div>
 
       {/* Card container */}

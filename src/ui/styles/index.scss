@@ -16,6 +16,13 @@
 }
 
 /*
+* Remove the bottom padding of container
+*/
+.bases-view {
+  padding-bottom: 0 !important;
+}
+
+/*
 * Entry element of plugin
 * !!This should be same name as PLUGIN_CONFIG.plugin_container_id
 */

@@ -8,7 +8,6 @@ import {
   DragOverlay,
   type DragStartEvent,
   getFirstCollision,
-  KeyboardSensor,
   PointerSensor,
   pointerWithin,
   rectIntersection,
@@ -20,7 +19,6 @@ import {
   arrayMove,
   horizontalListSortingStrategy,
   SortableContext,
-  sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { useCallback, useRef, useState } from "react";
 import type { Board } from "src/types/kanban";
@@ -83,9 +81,6 @@ export default function KanbanBoard({
       activationConstraint: {
         distance: 8, // start drag after element moved more than 8px
       },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
 

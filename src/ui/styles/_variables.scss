@@ -20,5 +20,12 @@ $opacity-thin: 0.2;
 $opacity-medium: 0.5;
 $opacity-thick: 0.8;
 
-// Size
-$tag-height: 1.4rem;
+// Brightness
+$brightness-low: 0.8;
+$brightness-medium: 1.1;
+$brightness-high: 1.2;
+
+// Transition duration
+$transition-fast: 0.2s;
+$transition-medium: 0.5s;
+$transition-lazy: 1s;

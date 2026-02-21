@@ -5,6 +5,7 @@ import { TFile, type Vault } from "obsidian";
 import React, { useEffect, useState } from "react";
 import type { Card, Column, Property } from "src/types/kanban";
 import ListComponent from "./List";
+import Text from "./propertyFilds/Text";
 
 export default function CardComponent({
   card,
@@ -65,7 +66,6 @@ export default function CardComponent({
       );
     }
   }, []);
-  // }, [frontMatter]);
 
   function propertyToElement(property: Property) {
     switch (property.type) {
@@ -124,13 +124,7 @@ export default function CardComponent({
           </div>
         );
       default:
-        return (
-          <textarea
-            className="text-property"
-            value={property.val.toString()}
-            readOnly
-          />
-        );
+        return <Text value={property.val.toString()} onChange={() => {}} />;
     }
   }
 
