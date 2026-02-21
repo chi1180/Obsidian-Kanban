@@ -42,8 +42,9 @@
         transition-duration: $transition-fast;
       }
 
-      // Property elements
+      /* == Property elements == */
 
+      // TEXT
       .text-property {
         button {
           box-shadow: none;
@@ -69,6 +70,16 @@
           height: auto;
           resize: none;
           overflow: hidden;
+        }
+      }
+
+      // CHECKBOX
+      .checkbox-property {
+        display: flex;
+        align-items: center;
+
+        span {
+          padding-bottom: $space-small;
         }
       }
     }

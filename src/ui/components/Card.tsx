@@ -5,7 +5,9 @@ import { TFile, type Vault } from "obsidian";
 import React, { useCallback } from "react";
 import type { Card, Column, Property } from "src/types/kanban";
 import ListComponent from "./List";
-import Text from "./propertyFilds/Text";
+import CheckBox from "./propertyFilds/CheckBox";
+import TextInput from "./propertyFilds/TextInput";
+import NumberInput from "./propertyFilds/NumberInput";
 
 export default function CardComponent({
   card,
@@ -63,17 +65,11 @@ export default function CardComponent({
     switch (property.type) {
       case "checkbox":
         return (
-          <div className="property-with-name">
-            <span>{property.name}</span>
-            <input
-              className="checkbox"
-              type="checkbox"
-              checked={property.val as boolean}
-              onChange={(event) => {
-                handlePropertyChange(property.name, event.target.checked);
-              }}
-            />
-          </div>
+          <CheckBox
+            propertyLabel={property.name}
+            value={property.val as boolean}
+            onChange={(value) => handlePropertyChange(property.name, value)}
+          />
         );
       case "date":
         return (
@@ -107,21 +103,17 @@ export default function CardComponent({
         return <ListComponent property={property} />;
       case "number":
         return (
-          <div className="property-with-name">
-            <span>{property.name}</span>
-            <input
-              className="number"
-              type="number"
-              value={property.val.toString()}
-              onChange={(event) => {
-                handlePropertyChange(property.name, event.target.value);
-              }}
-            />
-          </div>
+          <NumberInput
+            propertyLabel={property.name}
+            value={property.val.toString()}
+            onChange={(value) => {
+              handlePropertyChange(property.name, value);
+            }}
+          />
         );
       default:
         return (
-          <Text
+          <TextInput
             propertyLabel={property.name}
             value={property.val.toString()}
             onChange={(value) => {

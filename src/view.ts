@@ -2,7 +2,7 @@ import { BasesView, type QueryController, setTooltip } from "obsidian";
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { v4 as uuidv4 } from "uuid";
-import { PLUGIN_CONFIG, SETTING_KEYS } from "./config";
+import { PLUGIN_CONFIG, SETTING_KEYS, TOOLTIP_NAMES } from "./config";
 import type { Board } from "./types/kanban";
 import type { PluginSettings } from "./types/setting";
 import KanbanBoard from "./ui";
@@ -98,7 +98,7 @@ export class KanbanView extends BasesView {
         const tooltipText = el.getAttribute("data-tooltip") as string;
         const targetElem = el as HTMLElement;
 
-        if (el.className === "text-property") {
+        if (TOOLTIP_NAMES.includes(el.className)) {
           setTooltip(targetElem, tooltipText, {
             placement: "left",
           });

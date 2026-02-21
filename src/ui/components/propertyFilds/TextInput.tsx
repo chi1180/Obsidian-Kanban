@@ -11,12 +11,16 @@ export interface TextProps {
   onChange: (value: string) => void;
 }
 
-export default function Text({ propertyLabel, value, onChange }: TextProps) {
+export default function TextInput({
+  propertyLabel,
+  value,
+  onChange,
+}: TextProps) {
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function handleButtonClick() {
-    setIsEditing(!isEditing);
+    setIsEditing(true);
     setTimeout(() => {
       adjustTextareaHeight(textareaRef.current);
     }, 0);
@@ -34,8 +38,7 @@ export default function Text({ propertyLabel, value, onChange }: TextProps) {
         onChange(e.currentTarget.value);
         setIsEditing(false);
       }
-    }
-    if (e.key === "Escape") {
+    } else if (e.key === "Escape") {
       setIsEditing(false);
     }
     // Avoid triggering other events (e.g., card dragging) when pressing keys while editing

@@ -70,3 +70,8 @@ export const BASE_COLORS: Record<string, string> = {
   slate: "#64748B",
   stone: "#78716C",
 };
+
+/**
+ * Tooltip class names
+ */
+export const TOOLTIP_NAMES = ["text-property", "checkbox-property"];
