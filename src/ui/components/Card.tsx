@@ -2,7 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import matter from "gray-matter";
 import { TFile, type Vault } from "obsidian";
-import React, { useEffect, useState } from "react";
+import React, { useCallback } from "react";
 import type { Card, Column, Property } from "src/types/kanban";
 import ListComponent from "./List";
 import Text from "./propertyFilds/Text";
@@ -34,38 +34,30 @@ export default function CardComponent({
     transition,
   };
 
-  const [frontMatter, setFrontMatter] = useState<Record<
-    string,
-    Property["val"]
-  > | null>(null);
+  const handlePropertyChange = useCallback(
+    (propertyName: string, value: Property["val"]) => {
+      if (!vault) return;
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Disabled to avoid infinite loop as first time to set frontMatter
-  useEffect(() => {
-    const newFrontMatter: Record<string, Property["val"]> = {};
-    for (const property of card.properties) {
-      newFrontMatter[property.name] = property.val;
-    }
-    setFrontMatter(newFrontMatter);
-  }, []);
-
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Only for the change of frontMatter. Change of vault isn't necessary to trigger this effect.
-  useEffect(() => {
-    if (!vault || !frontMatter) return;
-
-    try {
-      const file = vault.getAbstractFileByPath(card.file.path);
-      if (file instanceof TFile) {
-        file.vault.read(file).then((fileContent) => {
-          const { content } = matter(fileContent);
-          file.vault.modify(file, matter.stringify(content, frontMatter));
-        });
+      try {
+        const file = vault.getAbstractFileByPath(card.file.path);
+        if (file instanceof TFile) {
+          file.vault.read(file).then((fileContent) => {
+            const { content } = matter(fileContent);
+            const updatedData = {
+              ...matter(fileContent).data,
+              [propertyName]: value,
+            };
+            file.vault.modify(file, matter.stringify(content, updatedData));
+          });
+        }
+      } catch (error) {
+        console.error(
+          `No way ! Something went wrong !! :P\n${JSON.stringify(error)}`,
+        );
       }
-    } catch (error) {
-      console.error(
-        `No way ! Something went wrong !! :P\n${JSON.stringify(error)}`,
-      );
-    }
-  }, []);
+    },
+    [vault, card.file.path],
+  );
 
   function propertyToElement(property: Property) {
     switch (property.type) {
@@ -78,12 +70,7 @@ export default function CardComponent({
               type="checkbox"
               checked={property.val as boolean}
               onChange={(event) => {
-                setFrontMatter((prev) => {
-                  return {
-                    ...prev,
-                    [property.name]: event.target.checked,
-                  };
-                });
+                handlePropertyChange(property.name, event.target.checked);
               }}
             />
           </div>
@@ -96,6 +83,9 @@ export default function CardComponent({
               className="date"
               type="date"
               value={property.val.toString()}
+              onChange={(event) => {
+                handlePropertyChange(property.name, event.target.value);
+              }}
             />
           </div>
         );
@@ -107,6 +97,9 @@ export default function CardComponent({
               className="date-and-time"
               type="datetime-local"
               value={property.val.toString()}
+              onChange={(event) => {
+                handlePropertyChange(property.name, event.target.value);
+              }}
             />
           </div>
         );
@@ -120,6 +113,9 @@ export default function CardComponent({
               className="number"
               type="number"
               value={property.val.toString()}
+              onChange={(event) => {
+                handlePropertyChange(property.name, event.target.value);
+              }}
             />
           </div>
         );
@@ -128,7 +124,9 @@ export default function CardComponent({
           <Text
             propertyLabel={property.name}
             value={property.val.toString()}
-            onChange={() => {}}
+            onChange={(value) => {
+              handlePropertyChange(property.name, value);
+            }}
           />
         );
     }

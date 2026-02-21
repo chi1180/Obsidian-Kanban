@@ -18,9 +18,8 @@ export default function Text({ propertyLabel, value, onChange }: TextProps) {
     if (e.key === "Enter") {
       const isNewLine = e.shiftKey;
       if (!isNewLine) {
+        onChange(e.currentTarget.value);
         setIsEditing(false);
-
-        // Save data
       }
     }
     if (e.key === "Escape") {
@@ -40,10 +39,9 @@ export default function Text({ propertyLabel, value, onChange }: TextProps) {
       {isEditing ? (
         <textarea
           defaultValue={value}
-          onChange={(e) => onChange(e.target.value)}
           onPointerDown={handlePointerDown}
           onKeyDown={handleKeyDown}
-          // biome-ignore lint/a11y/noAutofocus: ユーザーが明示的に編集モードに入るため、autoFocusは問題ないと判断
+          // biome-ignore lint/a11y/noAutofocus: Since user enter to edit mode on demand, autoFocus is not a problem.s
           autoFocus
         ></textarea>
       ) : (
