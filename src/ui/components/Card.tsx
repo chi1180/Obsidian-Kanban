@@ -8,6 +8,7 @@ import ListComponent from "./List";
 import CheckBox from "./propertyFilds/CheckBox";
 import TextInput from "./propertyFilds/TextInput";
 import NumberInput from "./propertyFilds/NumberInput";
+import { EXPANDED_PROPERTY_TYPES } from "src/config";
 
 export default function CardComponent({
   card,
@@ -139,7 +140,10 @@ export default function CardComponent({
         {card.properties
           .filter((property) => property.type !== "tags")
           .map((property, idx) => (
-            <div key={idx.toString()} className="property-container">
+            <div
+              key={idx.toString()}
+              className={`property-container ${EXPANDED_PROPERTY_TYPES.includes(property.type) ? "expanded-width" : ""}`}
+            >
               {propertyToElement(property)}
             </div>
           ))}
