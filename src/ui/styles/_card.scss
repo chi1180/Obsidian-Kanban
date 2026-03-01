@@ -87,6 +87,14 @@
           padding-bottom: $space-small;
         }
       }
+
+      // NUMBER
+      .number-property {
+        button {
+          box-shadow: none;
+          background-color: transparent;
+        }
+      }
     }
   }
 }

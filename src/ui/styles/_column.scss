@@ -6,15 +6,15 @@
 
   // Column size
   &.small {
-    width: $column-width-small !important;
+    min-width: $column-width-small !important;
   }
 
   &.medium {
-    width: $column-width-medium !important;
+    min-width: $column-width-medium !important;
   }
 
   &.large {
-    width: $column-width-large !important;
+    min-width: $column-width-large !important;
   }
 
   // When dragged

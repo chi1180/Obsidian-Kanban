@@ -34,7 +34,21 @@ export class KanbanView extends BasesView {
     const columns = convertToKanbanColumnData(
       this.data.groupedData,
       this.settings.showColumnColor,
-    );
+    ).map((col) => {
+      return {
+        ...col,
+        cards: col.cards.map((card) => {
+          return {
+            ...card,
+            properties: card.properties.filter((property) =>
+              this.data.properties
+                .map((prop) => prop.split(".").at(-1))
+                .includes(property.name),
+            ),
+          };
+        }),
+      };
+    });
 
     // Make Kanban board data
     const boardData: Board = {
