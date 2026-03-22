@@ -63,6 +63,14 @@ export default function CardComponent({
   );
 
   function propertyToElement(property: Property) {
+    if (property.val === null || property.val === undefined) {
+      console.error(
+        "Property value is null or undefined for property:",
+        property,
+      );
+      return null;
+    }
+
     switch (property.type) {
       case "checkbox":
         return (
