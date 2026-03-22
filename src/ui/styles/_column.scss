@@ -3,6 +3,7 @@
 .kanban-column {
   width: $column-width-medium; // It's used as default card size
   border-radius: $border-radius-large;
+  flex-shrink: 0;
 
   // Column size
   &.small {
