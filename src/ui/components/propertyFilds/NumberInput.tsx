@@ -22,11 +22,8 @@ export default function NumberInput({
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
-      onChange(e.currentTarget.value);
-    } else if (e.key === "Escape") {
-      setIsEditing(false);
-    }
+    if (e.key === "Enter") onChange(e.currentTarget.value);
+    else if (e.key === "Escape") setIsEditing(false);
 
     // Avoid triggering other events (e.g., card dragging) when pressing keys while editing
     e.stopPropagation();
@@ -39,6 +36,10 @@ export default function NumberInput({
           className="number"
           type="number"
           defaultValue={value.toString()}
+          onBlur={(e) => {
+            onChange(e.currentTarget.value);
+            setIsEditing(false);
+          }}
           onKeyDown={(e) => handleKeyDown(e)}
           // biome-ignore lint/a11y/noAutofocus: Since user enter to edit on demand, autoFocus is not a problem.
           autoFocus

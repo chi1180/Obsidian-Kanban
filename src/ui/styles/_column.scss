@@ -6,15 +6,15 @@
 
   // Column size
   &.small {
-    min-width: $column-width-small !important;
+    width: $column-width-small !important;
   }
 
   &.medium {
-    min-width: $column-width-medium !important;
+    width: $column-width-medium !important;
   }
 
   &.large {
-    min-width: $column-width-large !important;
+    width: $column-width-large !important;
   }
 
   // When dragged
@@ -22,19 +22,18 @@
     opacity: $opacity-thick;
   }
 
-  // When showColumnColors is disabled
-  &.no-base-color {
-    border: var(--border-width) solid var(--color-base-05);
-  }
-
   // Column header container
   .header-container {
     width: 100%;
-    padding-top: $space-medium;
     background-color: var(--background-primary);
+    padding-top: $space-medium;
     position: sticky;
     top: 0;
     z-index: 1;
+
+    &.overlay {
+      background-color: transparent;
+    }
 
     // Column header
     .header {
@@ -48,11 +47,11 @@
       flex-direction: row;
       gap: $space-medium;
       align-items: center;
-      color: white;
+      color: var(--text-normal);
 
       // when showColumnColors is disabled
       &.no-base-color {
-        background-color: var(--background-secondary-alt);
+        background-color: var(--background-secondary);
         color: var(--text-normal);
       }
 

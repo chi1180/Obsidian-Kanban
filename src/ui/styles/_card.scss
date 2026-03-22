@@ -5,7 +5,7 @@
   background-color: var(--background-secondary);
   border-radius: $border-radius-medium;
   overflow: visible;
-  box-shadow: 1px 1px var(--background-primary-alt);
+  box-shadow: 1px 1px var(--background-modifier-box-shadow);
   padding: $space-medium;
 
   &.dragging {

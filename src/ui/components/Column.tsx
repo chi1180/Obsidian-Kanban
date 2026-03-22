@@ -17,6 +17,7 @@ export default function ColumnComponent({
   baseColor,
   vault,
   columns,
+  isOverlay,
 }: {
   column: Column;
   disabled: boolean;
@@ -24,6 +25,7 @@ export default function ColumnComponent({
   baseColor?: string;
   vault?: Vault;
   columns?: Column[];
+  isOverlay?: boolean;
 }) {
   const {
     attributes,
@@ -58,7 +60,7 @@ export default function ColumnComponent({
       className={`kanban-column ${className} ${baseColor ? "" : "no-base-color"} ${isDragging ? "dragging" : ""}`}
     >
       {/* Header container*/}
-      <div className="header-container">
+      <div className={`header-container ${isOverlay ? "overlay" : ""}`}>
         {/* Header */}
         <div
           {...attributes}

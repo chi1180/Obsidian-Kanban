@@ -62,6 +62,10 @@ export default function TextInput({
           defaultValue={value}
           onChange={handleChange}
           onPointerDown={handlePointerDown}
+          onBlur={(e) => {
+            onChange(e.currentTarget.value);
+            setIsEditing(false);
+          }}
           onKeyDown={handleKeyDown}
           // biome-ignore lint/a11y/noAutofocus: Since user enter to edit mode on demand, autoFocus is not a problem.
           autoFocus

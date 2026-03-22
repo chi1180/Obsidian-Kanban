@@ -343,6 +343,7 @@ export default function KanbanBoard({
                 disabled={false}
                 className={settings.cardSize}
                 baseColor={activeColumn.color ? activeColumn.color : undefined}
+                isOverlay={true}
               />
             </div>
           ) : null}

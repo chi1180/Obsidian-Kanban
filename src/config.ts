@@ -74,7 +74,11 @@ export const BASE_COLORS: Record<string, string> = {
 /**
  * Tooltip class names
  */
-export const TOOLTIP_NAMES = ["text-property", "checkbox-property"];
+export const TOOLTIP_NAMES = [
+  "text-property",
+  "checkbox-property",
+  "number-property",
+];
 
 /**
  * Expanded property types
