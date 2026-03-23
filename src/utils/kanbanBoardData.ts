@@ -3,12 +3,7 @@
  */
 
 import type { BasesEntryGroup } from "obsidian";
-import type {
-  Card,
-  Column,
-  ExpandedBaseEntry,
-  Property,
-} from "src/types/kanban";
+import type { Card, Column, ExpandedBaseEntry } from "src/types/kanban";
 import { frontmatterTypeAssumption } from "./frontmatterTypeAssumption";
 import { assignColors } from "./colorGenerator";
 import { BASE_COLORS } from "src/config";
@@ -38,10 +33,7 @@ export function convertToKanbanColumnData(
       const customEntry = entry as ExpandedBaseEntry;
       const properties: Card["properties"] = [];
       for (const [key, value] of Object.entries(customEntry.frontmatter)) {
-        const { type, val } = frontmatterTypeAssumption(
-          key,
-          value as Property["val"],
-        );
+        const { type, val } = frontmatterTypeAssumption(key, value);
         const property = {
           name: key,
           type: type,

@@ -25,18 +25,20 @@ import type { Board } from "src/types/kanban";
 import ColumnComponent from "./components/Column";
 import CardComponent from "./components/Card";
 import matter from "gray-matter";
-import { TFile, type Vault } from "obsidian";
+import { App, TFile, type Vault } from "obsidian";
 import { BoardViewData } from "src/utils/localStorage";
 
 export default function KanbanBoard({
   boardData,
   vault,
+  app,
 }: {
   boardData: Board;
   vault: Vault;
+  app: App;
 }) {
   // localStorage data management class
-  const _boardViewData = new BoardViewData(boardData.id);
+  const _boardViewData = new BoardViewData(boardData.id, app);
 
   // update column order
   const existingColumnOrder = _boardViewData.get("columnOrder") as string[];
@@ -258,11 +260,17 @@ export default function KanbanBoard({
                 : ([movingCardInfo.newKey] as string[])
             ).map((key) => key.replace("#", ""));
 
-            file.vault.read(file).then((fileContent) => {
+            file.vault.read(file).then((fileContent): void => {
               const { data, content } = matter(fileContent);
               if (data["tags"]) {
                 data["tags"] = newKey.length === 1 ? newKey[0] : newKey;
-                file.vault.modify(file, matter.stringify(content, data));
+                file.vault
+                  .modify(file, matter.stringify(content, data))
+                  .catch((error) => {
+                    console.error(
+                      `Error occurred while modifying file: ${JSON.stringify(error)}`,
+                    );
+                  });
               }
             });
           }

@@ -63,7 +63,7 @@ export class KanbanView extends BasesView {
     console.dir(this.data.groupedData, { depth: null });
 
     /* Manage localStorage board view data */
-    const _BoardViewData = new BoardViewData(this.boardViewId);
+    const _BoardViewData = new BoardViewData(this.boardViewId, this.app);
     // Check existing columnOrder data
     const existingColumnOrder = _BoardViewData.get("columnOrder") as string[];
     const columnsDataForStorage = boardData.columns.map((column) => ({
@@ -92,7 +92,7 @@ export class KanbanView extends BasesView {
       .setAttr("id", `${PLUGIN_CONFIG.plugin_container_id}`);
     const container = document.getElementById(
       PLUGIN_CONFIG.plugin_container_id,
-    ) as HTMLElement;
+    );
     container.className = PLUGIN_CONFIG.plugin_container_id;
     this.root = createRoot(container);
 
@@ -101,6 +101,7 @@ export class KanbanView extends BasesView {
       React.createElement(KanbanBoard, {
         boardData: boardData,
         vault: this.app.vault,
+        app: this.app,
       }),
     );
 
@@ -109,7 +110,7 @@ export class KanbanView extends BasesView {
       const tooltipElements =
         this.containerEl.querySelectorAll("[data-tooltip]");
       tooltipElements.forEach((el) => {
-        const tooltipText = el.getAttribute("data-tooltip") as string;
+        const tooltipText = el.getAttribute("data-tooltip");
         const targetElem = el as HTMLElement;
 
         if (TOOLTIP_NAMES.includes(el.className)) {

@@ -58,10 +58,12 @@ const ctx = await esbuild.context({
 });
 
 if (isWatch) {
-  console.log("👀 Watching for changes...");
+  console.debug("👀 Watching for changes...");
   await ctx.watch();
 } else {
   await ctx.rebuild();
   await ctx.dispose();
-  console.log(isProd ? "✅ Production build complete!" : "✅ Build complete!");
+  console.debug(
+    isProd ? "✅ Production build complete!" : "✅ Build complete!",
+  );
 }

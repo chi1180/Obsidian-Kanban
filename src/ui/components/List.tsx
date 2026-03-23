@@ -2,7 +2,7 @@ import React from "react";
 import type { Property } from "src/types/kanban";
 
 export default function ListComponent({ property }: { property: Property }) {
-  console.log(`[--DEBUG--] ${JSON.stringify(property)}`);
+  console.debug(`[--DEBUG--] ${JSON.stringify(property)}`);
 
   // phase 1: How to get all of available properties?
   //

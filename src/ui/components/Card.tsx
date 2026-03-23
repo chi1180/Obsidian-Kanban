@@ -44,13 +44,19 @@ export default function CardComponent({
       try {
         const file = vault.getAbstractFileByPath(card.file.path);
         if (file instanceof TFile) {
-          file.vault.read(file).then((fileContent) => {
+          file.vault.read(file).then((fileContent): void => {
             const { content } = matter(fileContent);
             const updatedData = {
               ...matter(fileContent).data,
               [propertyName]: value,
             };
-            file.vault.modify(file, matter.stringify(content, updatedData));
+            file.vault
+              .modify(file, matter.stringify(content, updatedData))
+              .catch((error) => {
+                console.error(
+                  `Error occurred while modifying file: ${JSON.stringify(error)}`,
+                );
+              });
           });
         }
       } catch (error) {
