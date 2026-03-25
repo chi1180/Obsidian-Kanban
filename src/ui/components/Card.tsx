@@ -3,7 +3,7 @@ import { CSS } from "@dnd-kit/utilities";
 import matter from "gray-matter";
 import { TFile, type Vault } from "obsidian";
 import React, { useCallback } from "react";
-import type { Card, Column, Property } from "src/types/kanban";
+import type { Card, Property } from "src/types/kanban";
 import ListComponent from "./List";
 import CheckBox from "./propertyFilds/CheckBox";
 import TextInput from "./propertyFilds/TextInput";
@@ -22,7 +22,6 @@ export default function CardComponent({
   disabled?: boolean;
   className?: string;
   vault?: Vault;
-  columns?: Column[];
 }) {
   const {
     setNodeRef,
@@ -44,20 +43,27 @@ export default function CardComponent({
       try {
         const file = vault.getAbstractFileByPath(card.file.path);
         if (file instanceof TFile) {
-          file.vault.read(file).then((fileContent): void => {
-            const { content } = matter(fileContent);
-            const updatedData = {
-              ...matter(fileContent).data,
-              [propertyName]: value,
-            };
-            file.vault
-              .modify(file, matter.stringify(content, updatedData))
-              .catch((error) => {
-                console.error(
-                  `Error occurred while modifying file: ${JSON.stringify(error)}`,
-                );
-              });
-          });
+          void file.vault
+            .read(file)
+            .then((fileContent): void => {
+              const { content } = matter(fileContent);
+              const updatedData = {
+                ...matter(fileContent).data,
+                [propertyName]: value,
+              };
+              file.vault
+                .modify(file, matter.stringify(content, updatedData))
+                .catch((error) => {
+                  console.error(
+                    `Error occurred while modifying file: ${JSON.stringify(error)}`,
+                  );
+                });
+            })
+            .catch((error) => {
+              console.error(
+                `Error occurred while reading file: ${JSON.stringify(error)}`,
+              );
+            });
         }
       } catch (error) {
         console.error(

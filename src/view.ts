@@ -59,8 +59,8 @@ export class KanbanView extends BasesView {
     };
 
     // DEBUG //
-    console.dir(boardData, { depth: null });
-    console.dir(this.data.groupedData, { depth: null });
+    // console.dir(boardData, { depth: null });
+    // console.dir(this.data.groupedData, { depth: null });
 
     /* Manage localStorage board view data */
     const _BoardViewData = new BoardViewData(this.boardViewId, this.app);
