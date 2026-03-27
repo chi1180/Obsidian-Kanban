@@ -260,7 +260,7 @@ export default function KanbanBoard({
                 : ([movingCardInfo.newKey] as string[])
             ).map((key) => key.replace("#", ""));
 
-            file.vault.read(file).then((fileContent): void => {
+            void file.vault.read(file).then((fileContent): void => {
               const { data, content } = matter(fileContent);
               if (data["tags"]) {
                 data["tags"] = newKey.length === 1 ? newKey[0] : newKey;
