@@ -2,7 +2,11 @@
 
 A powerful, intuitive Kanban board plugin for [Obsidian](https://obsidian.md/) that brings visual project management and task organization directly into your markdown-based workflow.
 
+**Overview**
 ![image|600x400](./image.png)
+
+**Demonstration**
+![mp4|600x400]("./assets/Screencast from 2026-03-29 12-23-59.mp4")
 
 ## Features
 
