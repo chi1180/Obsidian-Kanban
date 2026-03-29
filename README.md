@@ -6,7 +6,7 @@ A powerful, intuitive Kanban board plugin for [Obsidian](https://obsidian.md/) t
 ![image|600x400](./image.png)
 
 **Demonstration**
-![mp4|600x400]("./assets/Screencast from 2026-03-29 12-23-59.mp4")
+[Watch demonstration (MP4)](./assets/Screencast%20from%202026-03-29%2012-23-59.mp4)
 
 ## Features
 
